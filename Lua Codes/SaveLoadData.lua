@@ -1,5 +1,5 @@
 function saveLoadSaveData()
-    local player = udg_save_load_queue_player[save_load_queue_current]
+    local player = udg_save_load_queue_player[udg_save_load_queue_current]
     local playerId = GetPlayerId(player) + 1
     local unit = udg_INV_Player_Hero[playerId]
     local unitId = GetUnitUserData(unit)
@@ -79,23 +79,25 @@ function saveLoadSaveData()
 
     udg_save_data[44] = R2I(udg_Stat_Healing_Reduce[unitId] * 100)
 
-    udg_save_data[45] = R2I(udg_Stat_Attack_Interval[unitId] * 100)
+    udg_save_data[45] = R2I(udg_Stat_Life_Steal[unitId] * 100)
+
+    udg_save_data[46] = R2I(udg_Stat_Attack_Interval[unitId] * 100)
 
     --Stats
     --Inventory
-    local currentIndex = 45
+    local currentIndex = 46
     for i=1,udg_INV_Slot_Limit do
         udg_save_data[currentIndex + i] = LoadIntegerBJ(i, playerId, udg_INV_ItemId_Hashtable)
     end
     --Inventory
     --Inventory Charges
-    local currentIndex = 152
+    local currentIndex = 153
     for i=1,udg_INV_Slot_Limit do
         udg_save_data[currentIndex + i] = LoadIntegerBJ(i, playerId, udg_INV_ItemCharges_Hashtable)
     end
     --Inventory Charges
     --Extra Stats
-    local currentIndex = 259
+    local currentIndex = 260
     udg_save_data[currentIndex + 1] = udg_Level_Stat_CurrentPoint[playerId]
     udg_save_data[currentIndex + 2] = udg_Level_Stat_StrengthGiven[playerId]
     udg_save_data[currentIndex + 3] = udg_Level_Stat_AgilityGiven[playerId]
@@ -103,7 +105,7 @@ function saveLoadSaveData()
     --Extra Stats
 
     --Belief Order
-    local currentIndex = 263
+    local currentIndex = 264
     udg_save_data[currentIndex + 1] = udg_BeliefOrder_CurrentPoint[playerId]
     udg_save_data[currentIndex + 2] = udg_BeliefOrder_GivenPoint[playerId]
     udg_save_data[currentIndex + 3] = udg_BeliefOrder_Holy[playerId]
@@ -115,9 +117,78 @@ function saveLoadSaveData()
     --Belief Order
 
     -- Gold
-    local currentIndex = 271
+    local currentIndex = 272
     udg_save_data[currentIndex + 1] = GetPlayerState(player, PLAYER_STATE_RESOURCE_GOLD) 
     -- Gold
+
+
+    --Abilities
+    local currentIndex = 273
+    if udg_AbilityQ[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 1] = getSpellIdBySpell(udg_AbilityQ[playerId])
+        udg_save_data[currentIndex + 2] = GetUnitAbilityLevel(unit, udg_AbilityQ[playerId])
+    else
+        udg_save_data[currentIndex + 1] = 0
+        udg_save_data[currentIndex + 2] = 0
+    end
+
+    if udg_AbilityW[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 3] = getSpellIdBySpell(udg_AbilityW[playerId])
+        udg_save_data[currentIndex + 4] = GetUnitAbilityLevel(unit, udg_AbilityW[playerId])
+    else
+        udg_save_data[currentIndex + 3] = 0
+        udg_save_data[currentIndex + 4] = 0
+    end
+
+    if udg_AbilityE[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 5] = getSpellIdBySpell(udg_AbilityE[playerId])
+        udg_save_data[currentIndex + 6] = GetUnitAbilityLevel(unit, udg_AbilityE[playerId])
+    else
+        udg_save_data[currentIndex + 5] = 0
+        udg_save_data[currentIndex + 6] = 0
+    end
+
+    if udg_AbilityR[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 7] = getSpellIdBySpell(udg_AbilityR[playerId])
+        udg_save_data[currentIndex + 8] = GetUnitAbilityLevel(unit, udg_AbilityR[playerId])
+    else
+        udg_save_data[currentIndex + 7] = 0
+        udg_save_data[currentIndex + 8] = 0
+    end
+
+    if udg_AbilityF[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 9] = getSpellIdBySpell(udg_AbilityF[playerId])
+        udg_save_data[currentIndex + 10] = GetUnitAbilityLevel(unit, udg_AbilityF[playerId])
+    else
+        udg_save_data[currentIndex + 9] = 0
+        udg_save_data[currentIndex + 10] = 0
+    end
+
+    if udg_AbilityG[playerId] ~= udg_Ability_Nil then
+        udg_save_data[currentIndex + 11] = getSpellIdBySpell(udg_AbilityG[playerId])
+        udg_save_data[currentIndex + 12] = GetUnitAbilityLevel(unit, udg_AbilityG[playerId])
+    else
+        udg_save_data[currentIndex + 11] = 0
+        udg_save_data[currentIndex + 12] = 0
+    end
+    --Abilities
+
+    -- Ability Point
+    local currentIndex = 285
+    udg_save_data[currentIndex + 1] = GetPlayerState(player, PLAYER_STATE_RESOURCE_LUMBER) 
+    -- Ability Point
+
+    -- Settings
+    local currentIndex = 286
+    udg_save_data[currentIndex + 1] = udg_Settings_ShowGold[playerId]
+    udg_save_data[currentIndex + 2] = udg_Settings_ShowEXP[playerId]
+    udg_save_data[currentIndex + 3] = udg_Settings_ShowHealTaken[playerId]
+    udg_save_data[currentIndex + 4] = udg_Settings_ShowHealGive[playerId]
+    udg_save_data[currentIndex + 5] = udg_Settings_ShowDamageTaken[playerId]
+    udg_save_data[currentIndex + 6] = udg_Settings_ShowDamageDealt[playerId]
+    -- Settings
+
+    local currentIndex = 292
 
 end
 
@@ -133,13 +204,20 @@ function saveLoadLoadData()
     registerUnit(unit)
     local unitId = GetUnitUserData(unit)
     udg_INV_Player_Hero[playerId] = GetLastCreatedUnit()
-    BlzSetHeroProperName(unit, GetPlayerName(player))
+    udg_INV_Player_Hero_Icon[playerId] = udg_Hero_Selection_UnitType_Icons[udg_save_read_data[1]]
+    BlzSetHeroProperName(unit, getPlayerNameWithoutSharp(player))
+    GroupAddUnit(udg_Heroes, unit)
     EnableTrigger(gg_trg_RegisterSystem_NewUnit)
 
     SetHeroLevelBJ(unit, udg_save_read_data[2], false)
     local currentXP = GetHeroXP(unit)
     local xpDifference = udg_save_read_data[3] - currentXP
     AddHeroXP(unit, xpDifference, false)
+
+    --For EXP System
+    local remainingXP = ModuloInteger(udg_save_read_data[3], 100)
+    local amount = R2I(udg_EXP_System_Required_Values[udg_save_read_data[2]] * remainingXP / 100)
+    udg_EXP_System_Unit_Current_EXP[unitId] = amount
 
     --Stats
     udg_Stat_Health[unitId] = udg_save_read_data[4]
@@ -207,10 +285,12 @@ function saveLoadLoadData()
 
     udg_Stat_Healing_Reduce[unitId] = I2R(udg_save_read_data[44]) / 100
 
-    udg_Stat_Attack_Interval[unitId] = I2R(udg_save_read_data[45]) / 100
+    udg_Stat_Life_Steal[unitId] = I2R(udg_save_read_data[45]) / 100
+
+    udg_Stat_Attack_Interval[unitId] = I2R(udg_save_read_data[46]) / 100
     --Stats
     --Inventory
-    local currentIndex = 45
+    local currentIndex = 46
     for i=1,udg_INV_Slot_Limit do
         local id = udg_save_read_data[currentIndex + i]
         SaveIntegerBJ(id, i, playerId, udg_INV_ItemId_Hashtable)
@@ -233,14 +313,14 @@ function saveLoadLoadData()
                 TriggerExecute(udg_ITEM_Trigger_Equipped[id])
             elseif i > 102 then
                 DisableTrigger( gg_trg_Item_System_Acquire )
-                UnitAddItemToSlotById(unit, udg_ITEM_Item_Type[id], i - 103)
+                UnitAddItemToSlotById(unit, FourCC(udg_ITEM_Item_Type[id]), i - 103)
                 EnableTrigger( gg_trg_Item_System_Acquire )
             end
         end
     end
     --Inventory
     --Inventory Charges
-    local currentIndex = 152
+    local currentIndex = 153
     for i=1,udg_INV_Slot_Limit do
         local id = udg_save_read_data[currentIndex + i]
         SaveIntegerBJ(id, i, playerId, udg_INV_ItemCharges_Hashtable)
@@ -252,7 +332,7 @@ function saveLoadLoadData()
     --Inventory Charges
 
     --Extra Stats
-    local currentIndex = 259
+    local currentIndex = 260
     udg_Level_Stat_CurrentPoint[playerId] = udg_save_read_data[currentIndex + 1]
     udg_Level_Stat_StrengthGiven[playerId] = udg_save_read_data[currentIndex + 2]
     udg_Level_Stat_AgilityGiven[playerId] = udg_save_read_data[currentIndex + 3]
@@ -260,7 +340,7 @@ function saveLoadLoadData()
     --Extra Stats
 
     --Belief Order
-    local currentIndex = 263
+    local currentIndex = 264
     udg_BeliefOrder_CurrentPoint[playerId] = udg_save_read_data[currentIndex + 1]
     udg_BeliefOrder_GivenPoint[playerId] = udg_save_read_data[currentIndex + 2]
     udg_BeliefOrder_Holy[playerId] = udg_save_read_data[currentIndex + 3]
@@ -272,13 +352,79 @@ function saveLoadLoadData()
     --Belief Order
 
     -- Gold
-    local currentIndex = 271
+    local currentIndex = 272
     SetPlayerState(player, PLAYER_STATE_RESOURCE_GOLD, udg_save_read_data[currentIndex + 1])
     -- Gold
-    local currentIndex = 272
-    
+
+
+    local currentIndex = 273
+    --Abilities
+    if udg_save_read_data[currentIndex + 1] == 0 then
+        udg_AbilityQ[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityQ[playerId] = udg_Ability_Purchase_AbilityQ[udg_save_read_data[currentIndex + 1]]
+        UnitAddAbility(unit, udg_AbilityQ[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityQ[playerId], udg_save_read_data[currentIndex + 2])
+    end
+
+    if udg_save_read_data[currentIndex + 3] == 0 then
+        udg_AbilityW[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityW[playerId] = udg_Ability_Purchase_AbilityW[udg_save_read_data[currentIndex + 3]]
+        UnitAddAbility(unit, udg_AbilityW[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityW[playerId], udg_save_read_data[currentIndex + 4])
+    end
+
+    if udg_save_read_data[currentIndex + 5] == 0 then
+        udg_AbilityE[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityE[playerId] = udg_Ability_Purchase_AbilityE[udg_save_read_data[currentIndex + 5]]
+        UnitAddAbility(unit, udg_AbilityE[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityE[playerId], udg_save_read_data[currentIndex + 6])
+    end
+
+    if udg_save_read_data[currentIndex + 7] == 0 then
+        udg_AbilityR[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityR[playerId] = udg_Ability_Purchase_AbilityQ[udg_save_read_data[currentIndex + 7]]
+        UnitAddAbility(unit, udg_AbilityR[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityR[playerId], udg_save_read_data[currentIndex + 8])
+    end
+
+    if udg_save_read_data[currentIndex + 9] == 0 then
+        udg_AbilityF[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityF[playerId] = udg_Ability_Purchase_AbilityQ[udg_save_read_data[currentIndex + 9]]
+        UnitAddAbility(unit, udg_AbilityF[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityF[playerId], udg_save_read_data[currentIndex + 10])
+    end
+
+    if udg_save_read_data[currentIndex + 11] == 0 then
+        udg_AbilityG[playerId] = FourCC('AEEE')
+    else
+        udg_AbilityG[playerId] = udg_Ability_Purchase_AbilityG[udg_save_read_data[currentIndex + 11]]
+        UnitAddAbility(unit, udg_AbilityG[playerId])
+        SetUnitAbilityLevel(unit, udg_AbilityG[playerId], udg_save_read_data[currentIndex + 12])
+    end
+    --Abilities
+
+    -- Ability Point
+    local currentIndex = 285
+    SetPlayerState(player, PLAYER_STATE_RESOURCE_LUMBER, udg_save_read_data[currentIndex + 1])
+    -- Ability Point
+
+    -- Settings
+    local currentIndex = 286
+    udg_Settings_ShowGold[playerId] = udg_save_read_data[currentIndex + 1]
+    udg_Settings_ShowEXP[playerId] = udg_save_read_data[currentIndex + 2]
+    udg_Settings_ShowHealTaken[playerId] = udg_save_read_data[currentIndex + 3]
+    udg_Settings_ShowHealGive[playerId] = udg_save_read_data[currentIndex + 4]
+    udg_Settings_ShowDamageTaken[playerId] = udg_save_read_data[currentIndex + 5]
+    udg_Settings_ShowDamageDealt[playerId] = udg_save_read_data[currentIndex + 6]
+    -- Settings
+
+    local currentIndex = 292
+
 
     calculateUnitStats(unit)
-    
-
 end

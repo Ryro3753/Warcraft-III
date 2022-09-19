@@ -20,7 +20,7 @@ function statAssignInt()
     udg_Stat_Spell_Damage_Assign[1] = 666
     -- Knight
     udg_Stat_Assign_Unit_Type[2] = "hkni"
-    udg_Stat_Health_Assign[2] = 9998
+    udg_Stat_Health_Assign[2] = 3
     udg_Stat_Mana_Assign[2] = 654
     udg_Stat_Strength_Assign[2] = 55
     udg_Stat_Agility_Assign[2] = 25
@@ -37,6 +37,9 @@ function statAssignInt()
     udg_Stat_Miss_Assign[2] = 0.00
     udg_Stat_Attack_Damage_Assign[2] = 11
     udg_Stat_Spell_Damage_Assign[2] = 0
+    udg_BackToBase_UnitTypeEnable[2] = true
+    udg_BackToLife_UnitTypeEnable[2] = true
+    udg_BackToLife_UnitTypeTime[2] = 10
     -- Heroes
     udg_Stat_Assign_Unit_Type[3] = "H004"
     udg_Stat_Assign_Unit_Type[4] = "H005"

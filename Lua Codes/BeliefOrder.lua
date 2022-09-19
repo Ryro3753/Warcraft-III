@@ -80,16 +80,18 @@ function showBeliefOrderMultiboard(player)
     if show == true then
         udg_CombatStatistics_Show = false
         udg_Stat_Multiboard_Show = false
-        if udg_BeliefOrder_Multiboard_Show == true then
+        udg_INV_Multiboard_Show = false
+        if udg_BeliefOrder_Multiboard_Show == true and show == true then
             udg_BeliefOrder_Multiboard_Show = false
         else
             udg_BeliefOrder_Multiboard_Show = true
         end
+
+        MultiboardDisplayBJ(udg_INV_Multiboard_Show, udg_INV_Multiboard)
+        MultiboardDisplayBJ(udg_CombatStatistics_Show, udg_CombatStatistics_Multiboard)
+        MultiboardDisplayBJ(udg_Stat_Multiboard_Show, udg_Stat_Multiboard)
+        MultiboardDisplayBJ(udg_BeliefOrder_Multiboard_Show, udg_BeliefOrder_Multiboard)
     end
-    
-    MultiboardDisplayBJ(udg_CombatStatistics_Show, udg_CombatStatistics_Multiboard)
-    MultiboardDisplayBJ(udg_Stat_Multiboard_Show, udg_Stat_Multiboard)
-    MultiboardDisplayBJ(udg_BeliefOrder_Multiboard_Show, udg_BeliefOrder_Multiboard)
 end
 
 
@@ -137,26 +139,50 @@ function BeliefOrderSystemDialogButtonClicked(player)
 
     --Holy
     if clickedIndex == 1 then
+        if udg_BeliefOrder_Holy[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(1, player)
+            return
+        end
         udg_BeliefOrder_Holy[playerId] = udg_BeliefOrder_Holy[playerId] + 1
         udg_BeliefOrder_Shadow[playerId] = udg_BeliefOrder_Shadow[playerId] - 1
     --Shadow
     elseif clickedIndex == 2 then
+        if udg_BeliefOrder_Shadow[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(2, player)
+            return
+        end
         udg_BeliefOrder_Shadow[playerId] = udg_BeliefOrder_Shadow[playerId] + 1
         udg_BeliefOrder_Holy[playerId] = udg_BeliefOrder_Holy[playerId] - 1
     --Nature
     elseif clickedIndex == 3 then
+        if udg_BeliefOrder_Nature[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(3, player)
+            return
+        end
         udg_BeliefOrder_Nature[playerId] = udg_BeliefOrder_Nature[playerId] + 1
         udg_BeliefOrder_Necromantic[playerId] = udg_BeliefOrder_Necromantic[playerId] - 1
     --Necromantic
     elseif clickedIndex == 4 then
+        if udg_BeliefOrder_Necromantic[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(4, player)
+            return
+        end
         udg_BeliefOrder_Necromantic[playerId] = udg_BeliefOrder_Necromantic[playerId] + 1
         udg_BeliefOrder_Nature[playerId] = udg_BeliefOrder_Nature[playerId] - 1
     --Arcane
     elseif clickedIndex == 5 then
+        if udg_BeliefOrder_Arcane[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(5, player)
+            return
+        end
         udg_BeliefOrder_Arcane[playerId] = udg_BeliefOrder_Arcane[playerId] + 1
         udg_BeliefOrder_Fel[playerId] = udg_BeliefOrder_Fel[playerId] - 1
     --Fel
     elseif clickedIndex == 6 then
+        if udg_BeliefOrder_Fel[playerId] < 0 then
+            BeliefOrderSystemConfirmDialogShow(6, player)
+            return
+        end
         udg_BeliefOrder_Fel[playerId] = udg_BeliefOrder_Fel[playerId] + 1
         udg_BeliefOrder_Arcane[playerId] = udg_BeliefOrder_Arcane[playerId] - 1
     end
@@ -175,4 +201,98 @@ function increaseBeliefOrderCurrentPoint(player,addPoint)
     local playerId = GetPlayerId(player) + 1
 
     udg_BeliefOrder_CurrentPoint[playerId] = udg_BeliefOrder_CurrentPoint[playerId] + addPoint
+end
+
+function BeliefOrderSystemConfirmDialogShow(index, player)
+    local playerId = GetPlayerId(player) + 1
+    local startId = (playerId - 1) * 3
+
+    local orderName = ""
+    local oppositeOrderName = ""
+    if index == 1 then
+        orderName = "|cffe1e100Holy|r"
+        oppositeOrderName = "|cff808080Shadow|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 1
+    elseif index == 2 then
+        orderName = "|cff808080Shadow|r"
+        oppositeOrderName = "|cffe1e100Holy|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 2
+    elseif index == 3 then
+        orderName = "|cff64e100Nature|r"
+        oppositeOrderName = "|cff320032Necromantic|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 3
+    elseif index == 4 then
+        orderName = "|cff320032Necromantic|r"
+        oppositeOrderName = "|cff64e100Nature|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 4
+    elseif index == 5 then
+        orderName = "|cff6f2583Arcane|r"
+        oppositeOrderName = "|cff008000Fel|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 5
+    elseif index == 6 then
+        orderName = "|cff008000Fel|r"
+        oppositeOrderName = "|cff6f2583Arcane|r"
+        udg_BeliefOrder_Confirm_Clicked[playerId] = 6
+    end
+
+    DialogClearBJ(udg_BeliefOrder_Confirm_Dialog[playerId])
+    DialogSetMessageBJ(udg_BeliefOrder_Confirm_Dialog[playerId], "Are you sure to continue with " .. orderName .. " ?|n It has less than 0 value, it would|n take away a point from " .. oppositeOrderName .. ".")
+
+    DialogAddButtonBJ(udg_BeliefOrder_Confirm_Dialog[playerId], "Yes")
+    udg_BeliefOrder_Confirm_DialogB[startId + 1] = GetLastCreatedButtonBJ()
+    DialogAddButtonBJ(udg_BeliefOrder_Confirm_Dialog[playerId], "No")
+    udg_BeliefOrder_Confirm_DialogB[startId + 2] = GetLastCreatedButtonBJ()
+    DialogAddButtonBJ(udg_BeliefOrder_Confirm_Dialog[playerId], "Cancel")
+    udg_BeliefOrder_Confirm_DialogB[startId + 3] = GetLastCreatedButtonBJ()
+
+    DialogDisplayBJ(true, udg_BeliefOrder_Confirm_Dialog[playerId], player)
+end
+
+function BeliefOrderSystemConfirmDialogClick()
+    local player = GetTriggerPlayer()
+    local playerId = GetPlayerId(player) + 1
+    local clickedButton = GetClickedButtonBJ()
+    local startId = (playerId - 1) * 2
+
+    if udg_BeliefOrder_Confirm_DialogB[startId + 1] == clickedButton then
+
+        if udg_BeliefOrder_Confirm_Clicked[playerId] == 1 then
+            udg_BeliefOrder_Holy[playerId] = udg_BeliefOrder_Holy[playerId] + 1
+            udg_BeliefOrder_Shadow[playerId] = udg_BeliefOrder_Shadow[playerId] - 1
+        elseif udg_BeliefOrder_Confirm_Clicked[playerId] == 2 then
+            udg_BeliefOrder_Shadow[playerId] = udg_BeliefOrder_Shadow[playerId] + 1
+            udg_BeliefOrder_Holy[playerId] = udg_BeliefOrder_Holy[playerId] - 1
+        elseif udg_BeliefOrder_Confirm_Clicked[playerId] == 3 then
+            udg_BeliefOrder_Nature[playerId] = udg_BeliefOrder_Nature[playerId] + 1
+            udg_BeliefOrder_Necromantic[playerId] = udg_BeliefOrder_Necromantic[playerId] - 1
+        elseif udg_BeliefOrder_Confirm_Clicked[playerId] == 4 then
+            udg_BeliefOrder_Necromantic[playerId] = udg_BeliefOrder_Necromantic[playerId] + 1
+            udg_BeliefOrder_Nature[playerId] = udg_BeliefOrder_Nature[playerId] - 1
+        elseif udg_BeliefOrder_Confirm_Clicked[playerId] == 5 then
+            udg_BeliefOrder_Arcane[playerId] = udg_BeliefOrder_Arcane[playerId] + 1
+            udg_BeliefOrder_Fel[playerId] = udg_BeliefOrder_Fel[playerId] - 1
+        elseif udg_BeliefOrder_Confirm_Clicked[playerId] == 6 then
+            udg_BeliefOrder_Fel[playerId] = udg_BeliefOrder_Fel[playerId] + 1
+            udg_BeliefOrder_Arcane[playerId] = udg_BeliefOrder_Arcane[playerId] - 1
+        end
+
+        udg_BeliefOrder_GivenPoint[playerId] = udg_BeliefOrder_GivenPoint[playerId] + 1
+        increaseBeliefOrderCurrentPoint(player,-1)
+        DialogSetMessage(udg_BeliefOrder_Dialog[playerId], "Belief Order (" .. tostring(udg_BeliefOrder_CurrentPoint[playerId]) .. " Remaining Poins)")
+        
+        if udg_BeliefOrder_CurrentPoint[playerId] > 0 then
+            DialogDisplay(player, udg_BeliefOrder_Dialog[playerId], true)
+        end
+
+    elseif udg_BeliefOrder_Confirm_DialogB[startId + 2] == clickedButton then
+        DialogSetMessage(udg_BeliefOrder_Dialog[playerId], "Belief Order (" .. tostring(udg_BeliefOrder_CurrentPoint[playerId]) .. " Remaining Poins)")
+        DialogDisplay(player, udg_BeliefOrder_Dialog[playerId], true)
+    else
+        player = nil
+        clickedButton = nil
+        return
+    end
+
+    player = nil
+    clickedButton = nil
 end

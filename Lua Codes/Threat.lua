@@ -4,13 +4,13 @@ function addThreatToThreatMeter(unit, threat)
 end
 
 
-function calculateThreat(value, isDamage, isHeal, customModifier)
+function calculateThreat(value, isDamage, isHeal, customModifier, unitThreatModifier)
     if isDamage == true then
-        return value * udg_ThreatMeter_DamageModifier
+        return value * udg_ThreatMeter_DamageModifier * unitThreatModifier
     elseif isHeal == true then
-        return value * udg_ThreatMeter_HealModifier
+        return value * udg_ThreatMeter_HealModifier * unitThreatModifier
     elseif customModifier ~= 0 then
-        return value * customModifier
+        return value * customModifier * unitThreatModifier
     end
 end
 
@@ -108,4 +108,14 @@ function threatClear(unit)
     end
 
     udg_ThreatMeter_Threat[id] = 0
+end
+
+
+function threatAssign()
+    udg_ThreatMeter_UnitThreatModifier[udg_Register_ID] = 1.00
+    local player = GetOwningPlayer(udg_Registered_Unit)
+    if IsPlayerInForce(player, udg_Enemy_PlayerGroup) == true then
+        SetUnitAcquireRangeBJ(udg_Registered_Unit, 200)
+    end
+    player = nil
 end

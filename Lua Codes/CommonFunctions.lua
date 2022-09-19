@@ -7,6 +7,10 @@ function fillPlayerGroup()
 end
 
 function creatingFloatingTextTimed(text, unit, size, red, green, blue)
+    if CountPlayersInForceBJ(udg_FloatingText_PlayerGroup) == 0 then
+        return
+    end
+
     local unitLoc = GetUnitLoc(unit)
     local textLoc = PolarProjectionBJ(unitLoc, GetRandomReal(-100, 100), GetRandomDirectionDeg())
     CreateTextTagLocBJ(text, textLoc, 0, size, red, green, blue, 0)
@@ -35,7 +39,7 @@ function healUnit(healer, healed, heal, critical)
     local healedId = GetUnitUserData(healed)
 
     --Calculate Heal
-    local ratio = 1.0 + udg_Stat_Healing_Taken_AC[healedId] - udg_Stat_Healing_Reduce_AC[healerId]
+    local ratio = 1.0 + (udg_Stat_Healing_Taken_AC[healedId] / 100) - (udg_Stat_Healing_Reduce_AC[healerId] / 100)
     local calculatedHeal = heal * ratio
 
     local criticalHappend = false
@@ -54,87 +58,199 @@ function healUnit(healer, healed, heal, critical)
 
     SetUnitState(healed, UNIT_STATE_LIFE, newHealth)
     
-    local healText = "+" .. calculatedHeal
+    local healText = "+" .. R2I(calculatedHeal)
     if criticalHappend then
         healText = healText .. "! Crit"
     end
-    creatingFloatingTextTimed(healText, healed, 10, 20, 90, 20)
+
+    if calculatedHeal ~= 0 then
+        local healedPlayer = GetOwningPlayer(healed)
+        local healedPlayerId = GetPlayerId(healedPlayer) + 1
+        if udg_Settings_ShowHealTaken[healedPlayerId] == 1 then
+            ForceAddPlayer(udg_FloatingText_PlayerGroup, healedPlayer)
+        end
+
+        local healerPlayer = GetOwningPlayer(healer)
+        local healerPlayerId = GetPlayerId(healerPlayer) + 1
+        if udg_Settings_ShowHealGive[healerPlayerId] == 1 then
+            ForceAddPlayer(udg_FloatingText_PlayerGroup, healerPlayer)
+        end
+
+        creatingFloatingTextTimed(healText, healed, 10, 20, 90, 20)
+
+        healedPlayer = nil
+        healerPlayer = nil
+    end
 
     --HPS
-    HPSMeter_Heal_PlayerBased[causerPlayerId] = HPSMeter_Heal_PlayerBased[causerPlayerId] + calculatedHeal
+    local healerPlayer = GetOwningPlayer(healer)
+    local healerPlayerId = GetPlayerId(healerPlayer) + 1
+    udg_HPSMeter_Heal_PlayerBased[healerPlayerId] = udg_HPSMeter_Heal_PlayerBased[healerPlayerId] + calculatedHeal
+    healerPlayer = nil
 
     --Threat
-    local threat = calculateThreat(calculatedHeal, false, true, 0)
+    local threat = calculateThreat(calculatedHeal, false, true, 0, udg_ThreatMeter_UnitThreatModifier[healerId])
     addThreatToThreatMeter(healer, threat)
-
 end
 
 
-function soulDamage(causer, receiver, damage, isDodgeActive, isMissActive, isBlockActive, isParryActive, isCriticalActive)
-
-    local causerId = GetUnitUserData(causer)
-    local receiverId = GetUnitUserData(receiver)
-
-    local dodge = udg_Stat_Dodge_AC[receiverId]
-    if dodge > GetRandomReal(0, 100.00) and isDodgeActive == true then
-        creatingFloatingTextTimed("Dodge!",damageReceiver,10,90,20,20)
-        damage = 0
+function getUnitIsMeleeOrRange(unit)
+    local attackRange = BlzGetUnitWeaponRealField(unit, UNIT_WEAPON_RF_ATTACK_RANGE, 0)
+    if attackRange > 300 then
+        return "Range"
+    else
+        return "Melee"
     end
+end
 
-    --check about Miss
-    local miss = udg_Stat_Miss_AC[causerId]
-    if miss > GetRandomReal(0, 100.00) and isMissActive == true then
-        creatingFloatingTextTimed("Miss!",damageCauser,10,90,20,20)
-        damage = 0
+--Special Effects
+
+function createSpecialEffectOnUnit(unit, specialEffect)
+    local loc = GetUnitLoc(unit)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    DestroyEffectBJ(GetLastCreatedEffectBJ())
+    RemoveLocation(loc)
+end
+
+function createSpecialEffectOnLoc(loc, specialEffect)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    DestroyEffectBJ(GetLastCreatedEffectBJ())
+end
+
+function createSpecialEffectOnUnitWithDuration(unit, specialEffect, duration)
+    local loc = GetUnitLoc(unit)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    local specialEffect = GetLastCreatedEffectBJ()
+    TriggerSleepAction(duration)
+    DestroyEffectBJ(specialEffect)
+    RemoveLocation(loc)
+    specialEffect = nil
+end
+
+function createSpecialEffectOnUnitWithDurationAndSize(unit, specialEffect, duration, size)
+    local loc = GetUnitLoc(unit)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    local specialEffect = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(specialEffect, size)
+    TriggerSleepAction(duration)
+    DestroyEffectBJ(specialEffect)
+    RemoveLocation(loc)
+    specialEffect = nil
+end
+
+function createSpecialEffectOnLocWithDurationAndSize(loc, specialEffect, duration, size)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    local specialEffect = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(specialEffect, size)
+    TriggerSleepAction(duration)
+    DestroyEffectBJ(specialEffect)
+    specialEffect = nil
+end
+
+function createSpecialEffectOnLocWithSize(loc, specialEffect, size)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    local specialEffect = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(specialEffect, size)
+    DestroyEffectBJ(specialEffect)
+    specialEffect = nil
+end
+
+function createSpecialEffectOnUnitWithSize(unit, specialEffect, size)
+    local loc = GetUnitLoc(unit)
+    AddSpecialEffectLocBJ(loc, specialEffect)
+    BlzSetSpecialEffectScale(GetLastCreatedEffectBJ(), size)
+    DestroyEffectBJ(GetLastCreatedEffectBJ())
+    RemoveLocation(loc)
+end
+
+--Special Effects
+
+function refreshCastingTimeOfAbility(unit, id, spell, level)
+    local baseCastingSpeed = getAbilityBaseCastingTime(spell, level)
+    local castingSpeed = calculateCastingSpeedToAbility(baseCastingSpeed, id)
+    local unitSpell = BlzGetUnitAbility(unit, spell)
+    print(BlzGetAbilityRealLevelField(unitSpell, ABILITY_RLF_CASTING_TIME, level - 1))
+    BlzSetAbilityRealLevelFieldBJ( BlzGetUnitAbility(unit, spell), ABILITY_RLF_CASTING_TIME, level - 1, castingSpeed)
+    unitSpell = nil
+end
+
+function getAbilityBaseCastingTime(spell, level)
+    UnitAddAbilityBJ(spell, udg_Dummy_Unit)
+    SetUnitAbilityLevel(unit, spell, level)
+    local addedSpell = BlzGetUnitAbility(udg_Dummy_Unit, spell)
+    local value = BlzGetAbilityRealLevelField(addedSpell, ABILITY_RLF_CASTING_TIME, level -1)
+    UnitRemoveAbilityBJ(spell, udg_Dummy_Unit)
+
+    addedSpell = nil
+    return value
+end
+
+function calculateCastingSpeedToAbility(castingSpeed, id)
+    udg_Stat_Casting_Speed_AC[id] = 50
+    return castingSpeed - (castingSpeed * (udg_Stat_Casting_Speed_AC[id] / 100))
+end
+
+
+function gainManaToUnit(unit, mana)
+    local unitCurrentMana = GetUnitState(unit, UNIT_STATE_MANA)
+    local unitMaxMana = GetUnitState(unit, UNIT_STATE_MAX_MANA)
+
+    if unitCurrentMana + mana > unitMaxMana then
+        SetUnitState(unit, UNIT_STATE_MANA, unitMaxMana)
+    else
+        SetUnitState(unit, UNIT_STATE_MANA, unitCurrentMana + mana)
     end
+end
 
-    --check about Parry
-    local parry = udg_Stat_Parry_AC[receiverId]
-    if parry > GetRandomReal(0, 100.00) and isParryActive == true then
-        creatingFloatingTextTimed("Parry!",damageReceiver,10,90,20,20)
-        damage = 0
-    end
+function getAbilityMana(unit, spell, level)
+    local unitSpell = BlzGetUnitAbility(unit, spell)
+    local value = BlzGetAbilityIntegerLevelField(unitSpell, ABILITY_ILF_MANA_COST, level - 1)
+    unitSpell = nil
+    return value
+end
 
-    --check about Block
-    if udg_Stat_Block_Enabled[receiverId] > 0 and isBlockActive == true then
-        local block = udg_Stat_Block_AC[receiverId]
-        if block > GetRandomReal(0, 100.00)  then
-            creatingFloatingTextTimed("Block!",damageReceiver,10,90,20,20)
-            damage = 0
+function getCurrentTime()
+    return udg_Elapsed_Second
+end
+
+
+function lifestealCalculate(unit, damage)
+    local id = GetUnitUserData(unit)
+    local heal = damage * udg_Stat_Life_Steal_AC[id] / 100
+    healUnit(unit, unit, heal, false)
+end
+
+function unitLevelsUp(unit)
+    local player = GetOwningPlayer(unit)
+    local playerId = GetPlayerId(player) + 1
+    local id = GetUnitUserData(unit)
+
+    udg_Stat_Strength[id] = udg_Stat_Strength[id] + 1
+    udg_Stat_Agility[id] = udg_Stat_Agility[id] + 1
+    udg_Stat_Intelligence[id] = udg_Stat_Intelligence[id] + 1
+    
+    udg_Level_Stat_CurrentPoint[playerId] = udg_Level_Stat_CurrentPoint[playerId] + 3
+    udg_BeliefOrder_CurrentPoint[playerId] = udg_BeliefOrder_CurrentPoint[playerId] + 1
+    AdjustPlayerStateBJ(1, player, PLAYER_STATE_RESOURCE_LUMBER)
+
+    calculateUnitStats(unit)
+
+    player = nil
+    playerId = nil
+    id = nil
+end
+
+function getPlayerNameWithoutSharp(player)
+    return split(GetPlayerName(player), "#")[1]
+end
+
+function arrayHasValue(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
         end
     end
 
-    --check about Critical Chance
-    local criticalChance = udg_Stat_Critical_Chance_AC[causerId]
-    local critHappend = false
-    if criticalChance > GetRandomReal(0, 100.00) and isCriticalActive == true and damage ~= 0 then
-        critHappend = true
-        local ciriticalDamageRate = udg_Stat_Critical_Damage_Rate_AC[causerId]
-        damage = damage * (ciriticalDamageRate / 100)
-    end
-    if damage ~= 0 then
-        local receiverHealth = GetUnitState(receiver, UNIT_STATE_LIFE)
-        local remainingHealth = receiverHealth - damage
-        if remainingHealth < 0 then
-            damage = receiverHealth
-            remainingHealth = 0
-        end
-        SetUnitState(receiver, UNIT_STATE_LIFE, remainingHealth)
-
-        local damageText = damage
-        if criticalHappend then
-            healText = healText .. "! Crit Soul Damage"
-        else
-            damageText = damageText .. " Soul Damage"
-        end
-        creatingFloatingTextTimed(damageText, receiverId, 10, 0, 0, 0)
-
-        addDPStoDPSMeterFromUnit(damageCauser, damage)
-
-        --Threat
-        local threat = calculateThreat(damage, true, false, 0)
-        addThreatToThreatMeter(causer, threat)
-    end
-
+    return false
 end
 

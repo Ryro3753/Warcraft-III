@@ -5,6 +5,17 @@ function combatSystemDamage()
 
     combatSystemDamageAddGroup(damager)
     combatSystemDamageAddGroup(receiver)
+
+    --Auto Pull
+    local loc = GetUnitLoc(receiver)
+    local group = GetUnitsInRangeOfLocAll(udg_CombatSystem_AutoPull_Radius, loc)
+    ForGroup(group, combatSystemAutoPullFor)
+    RemoveLocation(loc)
+    DestroyGroup(group)
+    loc = nil
+    group = nil
+
+    EnableTrigger(gg_trg_Combat_System_Control)
 end
 
 function combatSystemDamageAddGroup(unit)
@@ -27,6 +38,9 @@ end
 function combatSystemRepeat()
     ForGroup(udg_CombatSystem_UnitGroup, combatSystemRepeatLoop)
     
+    if CountUnitsInGroup(udg_CombatSystem_UnitGroup) == 0 then
+        DisableTrigger(gg_trg_Combat_System_Control)
+    end
 end
 
 function combatSystemRepeatLoopCloseBool()
@@ -56,23 +70,30 @@ function combatSystemRepeatLoop()
     local closeEnemyGroup = GetUnitsInRangeOfLocMatching(1000, point, Condition(combatSystemRepeatLoopCloseBool))
     if udg_Elapsed_Second - udg_CombatSystem_Elapsed_Second[id] > udg_CombatSystem_Time_Limit and CountUnitsInGroup(closeEnemyGroup) < 1 then
         GroupRemoveUnit(udg_CombatSystem_UnitGroup, unit)
-        removeUnitFromEnemyCombatGroup(unit)
         udg_CombatSystem_IsActive[id] = false
+        if IsPlayerInForce(player, udg_Player_PlayerGroup) then
+            ForceAddPlayer(udg_FloatingText_PlayerGroup, GetOwningPlayer(unit))
+            creatingFloatingTextTimed('Combat Mode Off', unit, 6, 100, 10, 10)
 
-        ForceAddPlayer(udg_FloatingText_PlayerGroup, GetOwningPlayer(unit))
-        creatingFloatingTextTimed('Combat Mode Off', unit, 6, 100, 10, 10)
+            --threat clearer
+            threatClear(unit)
 
-        --threat clearer
-        threatClear(unit)
+            if IsUnitInGroup(unit, udg_Heroes) then
+                udg_DPSMeter_Damage_PlayerBased[playerId] = 0
+                udg_DPSMeter_DPS_PlayerBased[playerId] = 0
+                udg_DPSMeter_Timer_PlayerBased[playerId] = 0
+    
+                udg_HPSMeter_Heal_PlayerBased[playerId] = 0
+                udg_HPSMeter_HPS_PlayerBased[playerId] = 0
+                udg_HPSMeter_Timer_PlayerBased[playerId] = 0
+            end
+        else
+            --Unit return his base
+            if checkIfUnitInBackToBaseSystem(unit) == true then
+                unitReturnToBase(unit)
+            end
 
-        if IsUnitInGroup(unit, udg_Heroes) then
-            udg_DPSMeter_Damage_PlayerBased[playerId] = 0
-            udg_DPSMeter_DPS_PlayerBased[playerId] = 0
-            udg_DPSMeter_Timer_PlayerBased[playerId] = 0
-
-            udg_HPSMeter_Heal_PlayerBased[playerId] = 0
-            udg_HPSMeter_HPS_PlayerBased[playerId] = 0
-            udg_HPSMeter_Timer_PlayerBased[playerId] = 0
+            removeUnitFromEnemyCombatGroup(unit)
         end
     else
         if IsUnitInGroup(unit, udg_Heroes) then
@@ -83,6 +104,9 @@ function combatSystemRepeatLoop()
         end
         if IsPlayerInForce(player, udg_Enemy_PlayerGroup) then
             threatLoop(unit)
+                if checkIfUnitInBackToBaseSystem(unit) == true then
+                checkIfUnitIsFarAway(unit)
+            end
         end
     end
     RemoveLocation(point)
@@ -106,4 +130,10 @@ function addUnitToEnemyCombatGroup(unit)
         udg_ThreatMeter_EnemyTarget[id] = nil
         udg_ThreatMeter_EnemyLastTarget[id] = nil
     end
+end
+
+function combatSystemAutoPullFor()
+    local unit = GetEnumUnit()
+    combatSystemDamageAddGroup(unit)
+    unit = nil
 end
