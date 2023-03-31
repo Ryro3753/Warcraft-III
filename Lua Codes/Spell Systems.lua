@@ -333,7 +333,7 @@ function missileCreate(loc, angle, player)
 end
 
 
-function missileToPoint(unit, loc, missileEffect, height, leapDistance, trigger)
+function missileToPoint(unit, loc, missileEffect, missileEffectSize, height, leapDistance, trigger)
     local player = GetOwningPlayer(unit)
     local unitLoc = GetUnitLoc(unit)
     local angle = AngleBetweenPoints(unitLoc, loc)
@@ -343,6 +343,7 @@ function missileToPoint(unit, loc, missileEffect, height, leapDistance, trigger)
 
     AddSpecialEffectTargetUnitBJ("origin", dummy, missileEffect)
     udg_Missile_System_Effect[id] = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(udg_Missile_System_Effect[id], missileEffectSize)
     SetUnitFlyHeight(dummy, height, 0)
 
     udg_Missile_System_LeapDistance[id] = leapDistance
@@ -367,7 +368,7 @@ function missileToPoint(unit, loc, missileEffect, height, leapDistance, trigger)
 end
 
 
-function missileToUnit(unit, target, missileEffect, height, leapDistance, trigger)
+function missileToUnit(unit, target, missileEffect, missileEffectSize, height, leapDistance, trigger)
     local player = GetOwningPlayer(unit)
     local unitLoc = GetUnitLoc(unit)
     local angle = AngleBetweenPoints(unitLoc, loc)
@@ -377,6 +378,7 @@ function missileToUnit(unit, target, missileEffect, height, leapDistance, trigge
 
     AddSpecialEffectTargetUnitBJ("origin", dummy, missileEffect)
     udg_Missile_System_Effect[id] = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(udg_Missile_System_Effect[id], missileEffectSize)
     SetUnitFlyHeight(dummy, height, 0)
 
     udg_Missile_System_LeapDistance[id] = leapDistance
@@ -403,7 +405,7 @@ function missileToUnit(unit, target, missileEffect, height, leapDistance, trigge
     dummy = nil
 end
 
-function missileToDirectionFirstEnemy(unit, loc, maxDistance, missileEffect, height, leapDistance, trigger)
+function missileToDirectionFirstEnemy(unit, loc, maxDistance, area, missileEffect, missileEffectSize, height, leapDistance, trigger)
     local player = GetOwningPlayer(unit)
     local unitLoc = GetUnitLoc(unit)
     local angle = AngleBetweenPoints(unitLoc, loc)
@@ -413,9 +415,11 @@ function missileToDirectionFirstEnemy(unit, loc, maxDistance, missileEffect, hei
 
     AddSpecialEffectTargetUnitBJ("origin", dummy, missileEffect)
     udg_Missile_System_Effect[id] = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(udg_Missile_System_Effect[id], missileEffectSize)
     SetUnitFlyHeight(dummy, height, 0)
 
     udg_Missile_System_LeapDistance[id] = leapDistance
+    udg_Missile_System_Area[id] = area
     udg_Missile_System_Trigger[id] = trigger
     udg_Missile_System_Caster[id] = unit
     udg_Missile_System_ElapsedDistance[id] = 0.00
@@ -435,7 +439,7 @@ function missileToDirectionFirstEnemy(unit, loc, maxDistance, missileEffect, hei
     dummy = nil
 end
 
-function missileToDirectionFirstAlly(unit, loc, maxDistance, missileEffect, height, leapDistance, trigger)
+function missileToDirectionFirstAlly(unit, loc, maxDistance, area, missileEffect, missileEffectSize, height, leapDistance, trigger)
     local player = GetOwningPlayer(unit)
     local unitLoc = GetUnitLoc(unit)
     local angle = AngleBetweenPoints(unitLoc, loc)
@@ -445,15 +449,54 @@ function missileToDirectionFirstAlly(unit, loc, maxDistance, missileEffect, heig
 
     AddSpecialEffectTargetUnitBJ("origin", dummy, missileEffect)
     udg_Missile_System_Effect[id] = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(udg_Missile_System_Effect[id], missileEffectSize)
     SetUnitFlyHeight(dummy, height, 0)
 
     udg_Missile_System_LeapDistance[id] = leapDistance
+    udg_Missile_System_Area[id] = area
     udg_Missile_System_Trigger[id] = trigger
     udg_Missile_System_Caster[id] = unit
     udg_Missile_System_ElapsedDistance[id] = 0.00
     udg_Missile_System_Type[id] = 4 -- Type 4 is a missile try to catch first ally unit
 
     local time = maxDistance / leapDistance * udg_Missile_System_Loop_Time
+    UnitApplyTimedLife(dummy, FourCC('BTLF'), time)
+
+    GroupAddUnit(udg_Missile_System_Group, dummy)
+    EnableTrigger(gg_trg_Missile_System_Loop)
+    
+    player = nil
+    RemoveLocation(unitLoc)
+    RemoveLocation(targetLoc)
+    unitLoc = nil
+    targetLoc = nil
+    dummy = nil
+end
+
+function missileToDirectionEveryEnemy(unit, loc, distance, area, missileEffect, missileEffectSize, height, leapDistance, triggerFinishes, triggerEach)
+    local player = GetOwningPlayer(unit)
+    local unitLoc = GetUnitLoc(unit)
+    local angle = AngleBetweenPoints(unitLoc, loc)
+
+    local dummy = missileCreate(unitLoc, angle, player)
+    local id = GetUnitUserData(dummy)
+
+    AddSpecialEffectTargetUnitBJ("origin", dummy, missileEffect)
+    udg_Missile_System_Effect[id] = GetLastCreatedEffectBJ()
+    BlzSetSpecialEffectScale(udg_Missile_System_Effect[id], missileEffectSize)
+    SetUnitFlyHeight(dummy, height, 0)
+
+    udg_Missile_System_LeapDistance[id] = leapDistance
+    udg_Missile_System_Area[id] = area
+    udg_Missile_System_Trigger[id] = triggerFinishes
+    udg_Missile_System_Trigger_Each[id] = triggerEach
+    udg_Missile_System_Caster[id] = unit
+    udg_Missile_System_ElapsedDistance[id] = 0.00
+    udg_Missile_System_Type[id] = 5 -- Type 5 is a missile try to catch every enemy
+
+    udg_Missile_System_Distance[id] = distance
+
+    local time = distance / leapDistance * udg_Missile_System_Loop_Time
     UnitApplyTimedLife(dummy, FourCC('BTLF'), time)
 
     GroupAddUnit(udg_Missile_System_Group, dummy)
@@ -523,7 +566,7 @@ function missileLoopFor()
             local targetLoc = GetUnitLoc(udg_Missile_System_Target[id])
             local angle = AngleBetweenPoints(loc, targetLoc)
             local nextLoc = PolarProjectionBJ(loc, udg_Missile_System_LeapDistance[id], angle)
-    
+            
             SetUnitPositionLoc(unit, nextLoc)
             udg_Missile_System_ElapsedDistance[id] = udg_Missile_System_ElapsedDistance[id] + udg_Missile_System_LeapDistance[id]
     
@@ -531,7 +574,7 @@ function missileLoopFor()
             if distanceDifference < 100 then
                 udg_Missile_System_Dummy_Target = udg_Missile_System_Target[id]
                 udg_Missile_System_Dummy_Caster = udg_Missile_System_Caster[id]
-                udg_Missile_System_Dummy_Angle = angle
+                udg_Missile_System_Dummy_Angle = angle * -1
     
                 DestroyEffect(udg_Missile_System_Effect[id])
     
@@ -574,9 +617,9 @@ function missileLoopFor()
 
             local group = nil
             if udg_Missile_System_Type[id] == 3 then
-                group = GetUnitsInRangeOfLocMatching(100, nextLoc, Condition(missileSystemEnemyFilter))
+                group = GetUnitsInRangeOfLocMatching(udg_Missile_System_Area[id], nextLoc, Condition(missileSystemEnemyFilter))
             else
-                group = GetUnitsInRangeOfLocMatching(100, nextLoc, Condition(missileSystemAllyFilter))
+                group = GetUnitsInRangeOfLocMatching(udg_Missile_System_Area[id], nextLoc, Condition(missileSystemAllyFilter))
             end
 
             if CountUnitsInGroup(group) > 0 then
@@ -606,6 +649,60 @@ function missileLoopFor()
             nextLoc = nil
         end
 
+
+        --Type 5
+    elseif udg_Missile_System_Type[id] == 5 then
+        if IsUnitAliveBJ(unit) == false or udg_Missile_System_ElapsedDistance[id] >= udg_Missile_System_Distance[id] then
+
+            if udg_Missile_System_Trigger[id] ~= nil then
+
+                udg_Missile_System_Dummy_Group = GetUnitsInRangeOfLocMatching(udg_Missile_System_Area[id], nextLoc, Condition(missileSystemEnemyFilter))
+                udg_Missile_System_Dummy_Caster = udg_Missile_System_Caster[id]
+                udg_Missile_System_Dummy_Point = GetUnitLoc(unit)
+                udg_Missile_System_Dummy_Angle = GetUnitFacing(unit)
+                
+                TriggerExecute(udg_Missile_System_Trigger[id])
+            end
+
+            DestroyEffect(udg_Missile_System_Effect[id])
+
+            GroupRemoveUnit(udg_Missile_System_Group, unit)
+            if CountUnitsInGroup(udg_Missile_System_Group) == 0 then
+                DisableTrigger(gg_trg_Missile_System_Loop)
+            end
+
+            RemoveUnit(unit)
+        else
+            local loc = GetUnitLoc(unit)
+            local nextLoc = PolarProjectionBJ(loc, udg_Missile_System_LeapDistance[id], GetUnitFacing(unit))
+
+            SetUnitPositionLoc(unit, nextLoc)
+            udg_Missile_System_ElapsedDistance[id] = udg_Missile_System_ElapsedDistance[id] + udg_Missile_System_LeapDistance[id]
+
+            local group = GetUnitsInRangeOfLocMatching(udg_Missile_System_Area[id], nextLoc, Condition(missileSystemEnemyFilter))
+
+            if CountUnitsInGroup(group) > 0 and udg_Missile_System_Trigger_Each[id] ~= nil then
+                udg_Missile_System_Dummy_Group = group
+                udg_Missile_System_Dummy_Caster = udg_Missile_System_Caster[id]
+                udg_Missile_System_Dummy_Point = GetUnitLoc(unit)
+                udg_Missile_System_Dummy_Angle = GetUnitFacing(unit)
+
+                TriggerExecute(udg_Missile_System_Trigger_Each[id])
+
+                RemoveLocation(udg_Missile_System_Dummy_Point)
+                udg_Missile_System_Dummy_Point = nil
+                udg_Missile_System_Dummy_Caster = nil
+            else
+
+            DestroyGroup(group)
+            group = nil
+            RemoveLocation(loc)
+            RemoveLocation(nextLoc)
+            loc = nil
+            nextLoc = nil
+            end
+
+        end
     end
     
 
@@ -646,4 +743,9 @@ function absorbAdd(unit, amount)
         udg_Stat_Absorb[id] = 0
         UnitRemoveAbility(unit, FourCC('ABSB'))
     end
+end
+
+
+function deneme()
+    missileToDirectionEveryEnemy(GetTriggerUnit(), GetSpellTargetLoc(), 1000, 100, "Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdl", 100, 30, nil, nil)
 end

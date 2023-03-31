@@ -123,7 +123,7 @@ function checkIfAcquiredItemIsASpellRelated()
         return
     end
 
-    --[[
+    
     if udg_Ability_Purchase_Melee_Range[id] ~= "Both" then
         local attackType = getUnitIsMeleeOrRange(unit)
         if udg_Ability_Purchase_Melee_Range[id] == "Range" and attackType ~= "Range" then
@@ -144,7 +144,7 @@ function checkIfAcquiredItemIsASpellRelated()
             return
         end
     end
-    ]]--
+    
 
     local spellLevel = getCurrentSpellLevel(unit,id)
     if udg_Ability_Purchase_MaxLevel[id] == spellLevel then
@@ -158,7 +158,6 @@ function checkIfAcquiredItemIsASpellRelated()
     end
 
     local unitLevel = GetUnitLevel(unit)
-    --[[
     if udg_Ability_Purchase_LevelR[id + spellLevel] > unitLevel 
     or udg_Ability_Purchase_HolyR[id + spellLevel] > math.max(udg_BeliefOrder_Holy[playerId],0)
     or udg_Ability_Purchase_ShadowR[id + spellLevel] > math.max(udg_BeliefOrder_Shadow[playerId],0)
@@ -175,7 +174,7 @@ function checkIfAcquiredItemIsASpellRelated()
         player = nil
         return
     end
-    --]]
+    
 
     if spellLevel == 0 then
         local emptySlotId = getFirstEmptySpellSlot(player)

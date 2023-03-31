@@ -13,7 +13,7 @@ function compressedFelBoltCastFinishes()
 
     udg_Compressed_Fel_Bolt_Ability[id] = spell
 
-    missileToUnit(unit,udg_Compressed_Fel_Bolt_Target[id],"Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdl", 100, 35, gg_trg_Compressed_Fel_Bolt_Missile_Hit)
+    missileToUnit(unit,udg_Compressed_Fel_Bolt_Target[id],"Abilities\\Weapons\\GreenDragonMissile\\GreenDragonMissile.mdl", 1, 100, 35, gg_trg_Compressed_Fel_Bolt_Missile_Hit)
 
     setCooldownToAbility(unit, id, spell, level)
 
@@ -28,8 +28,6 @@ function compressedFelBoltMissileHit()
     local spell = udg_Compressed_Fel_Bolt_Ability[casterId]
     local level = GetUnitAbilityLevel(caster, spell)
     local angle = udg_Missile_System_Dummy_Angle
-
-    angle = angle + 180
 
     local damage = 0
     local duration = 0.0
@@ -48,6 +46,8 @@ function compressedFelBoltMissileHit()
     end
 
     knockbackUnit(target, duration, 20, angle)
+
+    damage = damage + (0.5 * udg_Stat_Spell_Damage_AC[casterId])
 
     UnitDamageTargetBJ(caster, target, damage, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL)
 

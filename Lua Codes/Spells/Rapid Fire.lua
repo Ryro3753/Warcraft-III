@@ -89,7 +89,6 @@ function rapidFireUnlearn()
     local id = GetUnitUserData(unit)
     
     if level == 4 then
-        print("anan")
         udg_Stat_Attack_Speed[id] = udg_Stat_Attack_Speed[id] - 5
         calculateUnitStats(unit)
     end

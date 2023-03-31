@@ -29,6 +29,14 @@ function unitDies()
     local killerUnit = GetKillingUnit()
     local killerPlayer = GetOwningPlayer(killerUnit)
 
+    --Revive
+    local reviveHappend = unitDiesHeroRevive()
+    if reviveHappend then
+        killerUnit = nil
+        killerPlayer = nil
+        return
+    end
+
     if IsPlayerInForce(killerPlayer, udg_Player_PlayerGroup) == false then
         killerUnit = nil
         killerPlayer = nil
@@ -44,6 +52,27 @@ function unitDies()
     --Loot Table
     unitDiesLootTable()
     
+end
+
+function unitDiesHeroRevive()
+    local unit = GetTriggerUnit()
+    local player = GetOwningPlayer(unit)
+    local rbool = false;
+
+    if IsUnitType(unit, UNIT_TYPE_HERO) and IsPlayerInForce(player, udg_Player_PlayerGroup) then
+        DisplayTextToPlayer(player, 0, 0, "You will be revived in 10 second")
+        TriggerSleepAction(10)
+        local loc = GetRectCenter(udg_Hero_Selection_Create_Region)
+        ReviveHeroLoc(unit, loc, true)
+        PanCameraToTimedLocForPlayer(player, loc, 0.5)
+        RemoveLocation(loc)
+        loc = nil
+        rbool = true;
+    end
+
+    unit = nil
+    player = nil
+    return rbool
 end
 
 
@@ -239,7 +268,6 @@ function unitDiesLootTable()
     --Type 3
     elseif udg_LootTable_LootType[lootTableId] == 3 then
         local dropCount = GetRandomInt(udg_LootTable_DropMin[lootTableId], udg_LootTable_DropMax[lootTableId])
-        print(dropCount)
         local maxReal = 100
         local droppedItems = {}
         for q=1,dropCount do

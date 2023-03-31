@@ -12,28 +12,28 @@ function frostBlastCastFinishes()
     local level = GetUnitAbilityLevel(unit, spell)
 
     local damage = 0
-    local intelligencePercentage = 0
+    local spellDamagePercentage = 0
     local rootDuration = 0
     if level == 1 then
         damage = 30
-        intelligencePercentage = 0.50
+        spellDamagePercentage = 0.25
         rootDuration = 3
     elseif level == 2 then
         damage = 45
-        intelligencePercentage = 0.53
+        spellDamagePercentage = 0.27
         rootDuration = 3
     elseif level == 3 then
         damage = 70
-        intelligencePercentage = 0.56
+        spellDamagePercentage = 0.28
         rootDuration = 3
     elseif level == 4 then
         damage = 100
-        intelligencePercentage = 0.59
+        spellDamagePercentage = 0.30
         rootDuration = 4
     end
 
     udg_Frost_Blast_Root[id] = rootDuration
-    udg_Frost_Blast_Damage[id] = damage + (intelligencePercentage * udg_Stat_Intelligence_AC[id])
+    udg_Frost_Blast_Damage[id] = damage + (spellDamagePercentage * udg_Stat_Spell_Damage_AC[id])
     local group = GetUnitsInRangeOfLocMatching(300, udg_Frost_Blast_Point[id], Condition(frostBlastGroupFilter))
     ForGroup(group, frostBlastGroupFor)
 

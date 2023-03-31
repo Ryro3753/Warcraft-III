@@ -26,11 +26,12 @@ function checkIfUnitIsFarAway(unit)
     local id = GetUnitUserData(unit)
     local unitLoc = GetUnitLoc(unit)
 
-    if DistanceBetweenPoints(unitLoc, udg_BackToBase_UnitLoc[id]) > 1500 then
+    if DistanceBetweenPoints(unitLoc, udg_BackToBase_UnitLoc[id]) > udg_BackToBase_UnitDistance[id] then
         GroupRemoveUnit(udg_CombatSystem_UnitGroup, unit)
         udg_CombatSystem_IsActive[id] = false
         removeUnitFromEnemyCombatGroup(unit)
         unitReturnToBase(unit)
+        bossEncounterEnd(unit)
     end
 
     RemoveLocation(unitLoc)
@@ -56,8 +57,9 @@ function returnBaseUnitGroupLoop()
     local currentLoc = GetUnitLoc(unit)
 
     IssuePointOrderLocBJ(unit, "move", udg_BackToBase_UnitLoc[id])
-    if DistanceBetweenPoints(currentLoc, udg_BackToBase_UnitLoc[id]) < 300 then
+    if DistanceBetweenPoints(currentLoc, udg_BackToBase_UnitLoc[id]) < 200 then
 
+        IssueImmediateOrder(unit, "holdposition")
         SetUnitInvulnerable(unit, false)
         SetUnitPathing(unit, true)
         GroupRemoveUnit(udg_BackToBase_UnitGroup, unit)

@@ -30,17 +30,21 @@
         DisableTrigger(gg_trg_RegisterSystem_NewUnit)
         CreateNUnitsAtLoc(1, udg_Hero_Selection_UnitType[sumIndex], player, createPoint, 0)
         registerUnit(GetLastCreatedUnit())
+        local id = GetUnitUserData(GetLastCreatedUnit())
         EnableTrigger(gg_trg_RegisterSystem_NewUnit)
-        
+        spellVariablesInit(id)
         GroupAddUnit(udg_Heroes, GetLastCreatedUnit())
         udg_INV_Player_Hero[playerId] = GetLastCreatedUnit()
         udg_INV_Player_Hero_Icon[playerId] = udg_Hero_Selection_UnitType_Icons[sumIndex]
         BlzSetHeroProperName(GetLastCreatedUnit(), getPlayerNameWithoutSharp(player))
         RemoveLocation(createPoint)
         
+        notesRefresh(player)
+        achivementsRefresh(player)
         unitLevelsUp(GetLastCreatedUnit())
         heroSelectionRefreshDialogNames()
         print(getPlayerNameWithColor(player) .. " selected " .. GetUnitName(GetLastCreatedUnit()))
+        AdjustPlayerStateBJ(40, player, PLAYER_STATE_RESOURCE_GOLD)
     end
 
     function heroSelectionRefreshDialogNames()

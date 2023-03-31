@@ -186,9 +186,11 @@ function saveLoadSaveData()
     udg_save_data[currentIndex + 4] = udg_Settings_ShowHealGive[playerId]
     udg_save_data[currentIndex + 5] = udg_Settings_ShowDamageTaken[playerId]
     udg_save_data[currentIndex + 6] = udg_Settings_ShowDamageDealt[playerId]
+    udg_save_data[currentIndex + 7] = udg_Settings_ShowNotes[playerId]
+    udg_save_data[currentIndex + 8] = udg_Settings_ShowAllAchivements[playerId]
     -- Settings
 
-    local currentIndex = 292
+    local currentIndex = 294
 
 end
 
@@ -207,6 +209,7 @@ function saveLoadLoadData()
     udg_INV_Player_Hero_Icon[playerId] = udg_Hero_Selection_UnitType_Icons[udg_save_read_data[1]]
     BlzSetHeroProperName(unit, getPlayerNameWithoutSharp(player))
     GroupAddUnit(udg_Heroes, unit)
+    spellVariablesInit(unitId)
     EnableTrigger(gg_trg_RegisterSystem_NewUnit)
 
     SetHeroLevelBJ(unit, udg_save_read_data[2], false)
@@ -313,7 +316,7 @@ function saveLoadLoadData()
                 TriggerExecute(udg_ITEM_Trigger_Equipped[id])
             elseif i > 102 then
                 DisableTrigger( gg_trg_Item_System_Acquire )
-                UnitAddItemToSlotById(unit, FourCC(udg_ITEM_Item_Type[id]), i - 103)
+                UnitAddItemToSlotById(unit, udg_ITEM_Item_Type[id], i - 103)
                 EnableTrigger( gg_trg_Item_System_Acquire )
             end
         end
@@ -421,10 +424,13 @@ function saveLoadLoadData()
     udg_Settings_ShowHealGive[playerId] = udg_save_read_data[currentIndex + 4]
     udg_Settings_ShowDamageTaken[playerId] = udg_save_read_data[currentIndex + 5]
     udg_Settings_ShowDamageDealt[playerId] = udg_save_read_data[currentIndex + 6]
+    udg_Settings_ShowNotes[playerId] = udg_save_read_data[currentIndex + 7]
+    udg_Settings_ShowAllAchivements[playerId] = udg_save_read_data[currentIndex + 8]
     -- Settings
 
-    local currentIndex = 292
+    local currentIndex = 294
 
-
+    notesRefresh(player)
+    achivementsRefresh(player)
     calculateUnitStats(unit)
 end

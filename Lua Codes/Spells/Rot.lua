@@ -10,17 +10,22 @@ function rotCast()
         udg_Rot_Interval[targetId] = 7
     else
         local damage = 0
+        local spellDamageRatio = 0.0
         if level == 1 then
             damage = 15
+            spellDamageRatio = 0.05
         elseif level == 2 then
             damage = 25
+            spellDamageRatio = 0.05
         elseif level == 3 then
             damage = 35
+            spellDamageRatio = 0.06
         elseif level == 4 then
             damage = 50
+            spellDamageRatio = 0.06
         end
 
-        damage = damage + R2I((9 + level) / 100 * udg_Stat_Intelligence_AC[casterId])
+        damage = damage + R2I(spellDamageRatio * udg_Stat_Spell_Damage_AC[casterId])
         udg_Rot_Damage[targetId] = damage
         udg_Rot_AttackDamage[targetId] = 15
         udg_Rot_Interval[targetId] = 7

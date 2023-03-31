@@ -16,7 +16,7 @@ function holyTouchFinishes()
         baseHeal = 225
     end
 
-    local heal = R2I(baseHeal + (0.75 * udg_Stat_Intelligence_AC[id]))
+    local heal = R2I(baseHeal + (udg_Stat_Spell_Damage_AC[id]))
     healUnit(caster, target, heal, true)
 
     setCooldownToAbility(caster, id, spell, level)

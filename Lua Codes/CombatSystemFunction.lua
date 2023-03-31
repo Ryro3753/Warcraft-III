@@ -8,14 +8,20 @@ function combatSystemDamage()
 
     --Auto Pull
     local loc = GetUnitLoc(receiver)
-    local group = GetUnitsInRangeOfLocAll(udg_CombatSystem_AutoPull_Radius, loc)
+    local group = GetUnitsInRangeOfLocMatching(udg_CombatSystem_AutoPull_Radius, loc, Condition(combatSystemAutoPullCondition))
     ForGroup(group, combatSystemAutoPullFor)
     RemoveLocation(loc)
     DestroyGroup(group)
     loc = nil
     group = nil
 
-    EnableTrigger(gg_trg_Combat_System_Control)
+    if IsTriggerEnabled(gg_trg_Combat_System_Control) == false then
+        TriggerExecute(gg_trg_Combat_System_Control)
+        EnableTrigger(gg_trg_Combat_System_Control)
+    end
+
+    damager = nil
+    receiver = nil
 end
 
 function combatSystemDamageAddGroup(unit)
@@ -30,6 +36,10 @@ function combatSystemDamageAddGroup(unit)
         creatingFloatingTextTimed('Combat Mode On', unit, 6, 100, 10, 10)
 
         addUnitToEnemyCombatGroup(unit)
+
+        if IsUnitType(unit, UNIT_TYPE_ANCIENT) == true and udg_Boss_Encounter_Active == false then
+            bossEncounterStart(unit)
+        end
     end
     
     
@@ -44,8 +54,8 @@ function combatSystemRepeat()
 end
 
 function combatSystemRepeatLoopCloseBool()
-    if IsUnitEnemy(GetEnumUnit(), GetOwningPlayer(GetFilterUnit())) and IsUnitInGroup(GetFilterUnit(), udg_CombatSystem_UnitGroup)  and IsUnitAliveBJ(GetFilterUnit()) then
-       return true 
+    if IsUnitEnemy(GetEnumUnit(), GetOwningPlayer(GetFilterUnit())) and IsUnitInGroup(GetFilterUnit(), udg_CombatSystem_UnitGroup)  and IsUnitAliveBJ(GetFilterUnit()) and IsUnitAliveBJ(GetEnumUnit()) then
+       return true
     else
         return false
     end
@@ -57,17 +67,18 @@ function combatSystemRepeatLoop()
     local id = GetUnitUserData(unit)
     local playerId = GetPlayerId(player) + 1
 
-    if IsUnitAliveBJ(unit) == false then
+    if IsUnitType(unit, UNIT_TYPE_DEAD) then
         GroupRemoveUnit(udg_CombatSystem_UnitGroup, unit)
         udg_CombatSystem_IsActive[id] = false
         removeUnitFromEnemyCombatGroup(unit)
         threatClear(unit)
+        bossEncounterEnd(unit)
         return
     end
 
     --Check close enemy units that exists
     local point = GetUnitLoc(unit)
-    local closeEnemyGroup = GetUnitsInRangeOfLocMatching(1000, point, Condition(combatSystemRepeatLoopCloseBool))
+    local closeEnemyGroup = GetUnitsInRangeOfLocMatching(800, point, Condition(combatSystemRepeatLoopCloseBool))
     if udg_Elapsed_Second - udg_CombatSystem_Elapsed_Second[id] > udg_CombatSystem_Time_Limit and CountUnitsInGroup(closeEnemyGroup) < 1 then
         GroupRemoveUnit(udg_CombatSystem_UnitGroup, unit)
         udg_CombatSystem_IsActive[id] = false
@@ -94,6 +105,7 @@ function combatSystemRepeatLoop()
             end
 
             removeUnitFromEnemyCombatGroup(unit)
+            bossEncounterEnd(unit)
         end
     else
         if IsUnitInGroup(unit, udg_Heroes) then
@@ -115,10 +127,17 @@ end
 
 
 function removeUnitFromEnemyCombatGroup(unit)
-    GroupRemoveUnit(udg_CombatSystem_Enemy_UnitGroup, unit)
+    if IsUnitInGroup(unit, udg_CombatSystem_Enemy_UnitGroup) then
+        
+        GroupRemoveUnit(udg_CombatSystem_Enemy_UnitGroup, unit)
 
-    if CountUnitsInGroup(udg_CombatSystem_Enemy_UnitGroup) == 0 then
-        DisableTrigger(gg_trg_Threat_System_Enemy_Attack_Target_Retreive)
+
+        local heal = GetUnitState(unit, UNIT_STATE_MAX_LIFE) * 0.1
+        healUnit(unit, unit, heal, false)
+
+        if CountUnitsInGroup(udg_CombatSystem_Enemy_UnitGroup) == 0 then
+            DisableTrigger(gg_trg_Threat_System_Enemy_Attack_Target_Retreive)
+        end
     end
 end
 
@@ -133,7 +152,13 @@ function addUnitToEnemyCombatGroup(unit)
 end
 
 function combatSystemAutoPullFor()
-    local unit = GetEnumUnit()
-    combatSystemDamageAddGroup(unit)
-    unit = nil
+    combatSystemDamageAddGroup(GetEnumUnit())
+end
+
+function combatSystemAutoPullCondition()
+    if IsUnitType(GetFilterUnit(), UNIT_TYPE_ANCIENT) or IsUnitType(GetFilterUnit(), UNIT_TYPE_DEAD) then
+        return false
+    else
+        return true
+    end
 end

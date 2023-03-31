@@ -12,17 +12,12 @@ end
 
 function getItemId(itemType)
     for i=1,udg_ITEM_Limit do
-        if itemType == FourCC(udg_ITEM_Item_Type[i]) then
+        if itemType == udg_ITEM_Item_Type[i] then
             return i
         end
     end
     return 0
 end
-
-function getTab()
-    return "        ";
-end
-
 
 function checkIfChargableItemOwned(itemId, player)
     local playerId = GetPlayerId(player) + 1
@@ -46,58 +41,6 @@ function getFirstEmptyConsumableSlot(player)
     return 0
 end
 
-function changeInventoryTexts(player)
-    local playerId = GetPlayerId(player) + 1
-
-    DestroyTextTag(udg_INV_Player_FloatingText_Name[playerId])
-    DestroyTextTag(udg_INV_Player_FloatingText[playerId])
-    DestroyTextTag(udg_INV_Player_FloatingText2[playerId])
-    DestroyTextTag(udg_INV_Player_FloatingText_D_Text[playerId])
-
-    local currentItemIndex = udg_INV_Player_Current_Index[playerId]
-    local currentItemId = LoadIntegerBJ(currentItemIndex, playerId, udg_INV_ItemId_Hashtable)
-    local charges = LoadIntegerBJ(currentItemIndex, playerId, udg_INV_ItemCharges_Hashtable)
-
-    if currentItemId == 0 then
-        return
-    end
-
-    local itemSlot = udg_ITEM_Slot[currentItemId]
-    local gold = udg_ITEM_Gold[currentItemId]
-    local consumable = udg_ITEM_IsConsumable[currentItemId]
-    local block = udg_ITEM_IsBlockActive[currentItemId]
-
-    local header = udg_ITEM_Name[currentItemId]
-
-    if charges > 0 then
-        header = header .. "(" .. charges .. ")|n"
-    end
-
-    if itemSlot ~= 0 then
-        header = header .. getTab() .. "Slot:" .. udg_INV_Slot_Names[itemSlot] .. "|n"
-    end
-
-    if consumable == true then
-        header = header .. getTab() .. "|cffd45Consumable|r|n"
-    end 
-    if block == true then
-        header = header .. getTab() .. "|cffd45Activates Block|r|n"
-    end
-
-    header = header .. getTab() .."|cff808000Worth: " .. gold .. "|r"
-
-    CreateTextTagLocBJ(header, udg_INV_Player_FloatingText_Name_P[playerId], 0, 8, 100, 100, 100, 0)
-    udg_INV_Player_FloatingText_Name[playerId] = GetLastCreatedTextTag()
-
-    CreateTextTagLocBJ(udg_ITEM_Description[currentItemId], udg_INV_Player_FloatingText_Point[playerId], 0, 7, 100, 100, 100, 0)
-    udg_INV_Player_FloatingText[playerId] = GetLastCreatedTextTag()
-
-    CreateTextTagLocBJ(udg_ITEM_Description2[currentItemId], udg_INV_Player_FloatingText_Point2[playerId], 0, 7, 100, 100, 100, 0)
-    udg_INV_Player_FloatingText2[playerId] = GetLastCreatedTextTag()
-
-end
-
-
 function equipItemStat(unit, itemId)
     local unitId = GetUnitUserData(unit)
     udg_Stat_Health[unitId] = udg_Stat_Health[unitId] + udg_ITEM_Health[itemId]
@@ -108,6 +51,8 @@ function equipItemStat(unit, itemId)
     udg_Stat_Strength_Modifier[unitId] = udg_Stat_Strength_Modifier[unitId] + udg_ITEM_Strength_Modifier[itemId]
     udg_Stat_Agility[unitId] = udg_Stat_Agility[unitId] + udg_ITEM_Agility[itemId]
     udg_Stat_Agility_Modifier[unitId] = udg_Stat_Agility_Modifier[unitId] + udg_ITEM_Agility_Modifier[itemId]
+    udg_Stat_Intelligence[unitId] = udg_Stat_Intelligence[unitId] + udg_ITEM_Intelligence[itemId]
+    udg_Stat_Intelligence_Modifier[unitId] = udg_Stat_Intelligence_Modifier[unitId] + udg_ITEM_Intelligence_Modifier[itemId]
     udg_Stat_Health_Regen[unitId] = udg_Stat_Health_Regen[unitId] + udg_ITEM_Health_Regen[itemId]
     udg_Stat_Mana_Regen[unitId] = udg_Stat_Mana_Regen[unitId] + udg_ITEM_Mana_Regen[itemId]
     udg_Stat_Armor[unitId] = udg_Stat_Armor[unitId] + udg_ITEM_Armor[itemId]
@@ -145,6 +90,8 @@ function unEquipItemStat(unit, itemId)
     udg_Stat_Strength_Modifier[unitId] = udg_Stat_Strength_Modifier[unitId] - udg_ITEM_Strength_Modifier[itemId]
     udg_Stat_Agility[unitId] = udg_Stat_Agility[unitId] - udg_ITEM_Agility[itemId]
     udg_Stat_Agility_Modifier[unitId] = udg_Stat_Agility_Modifier[unitId] - udg_ITEM_Agility_Modifier[itemId]
+    udg_Stat_Intelligence[unitId] = udg_Stat_Intelligence[unitId] - udg_ITEM_Intelligence[itemId]
+    udg_Stat_Intelligence_Modifier[unitId] = udg_Stat_Intelligence_Modifier[unitId] - udg_ITEM_Intelligence_Modifier[itemId]
     udg_Stat_Health_Regen[unitId] = udg_Stat_Health_Regen[unitId] - udg_ITEM_Health_Regen[itemId]
     udg_Stat_Mana_Regen[unitId] = udg_Stat_Mana_Regen[unitId] - udg_ITEM_Mana_Regen[itemId]
     udg_Stat_Armor[unitId] = udg_Stat_Armor[unitId] - udg_ITEM_Armor[itemId]
@@ -193,37 +140,39 @@ function assignStatsInit(unit)
         return
     end
 
-    udg_Stat_Health[unitId] = udg_Stat_Health_Assign[unitTypeId]
+    local adjustmentGeneralRatio, adjustmentCombatRatio = adjustmentRatioGet(unit)
+
+    udg_Stat_Health[unitId] = R2I(udg_Stat_Health_Assign[unitTypeId] * adjustmentGeneralRatio)
     udg_Stat_Health_Modifier[unitId] = 100
     udg_Stat_Health_Flat[unitId] = 0
 
-    udg_Stat_Mana[unitId] = udg_Stat_Mana_Assign[unitTypeId]
+    udg_Stat_Mana[unitId] = R2I(udg_Stat_Mana_Assign[unitTypeId] * adjustmentGeneralRatio)
     udg_Stat_Mana_Modifier[unitId] = 100
     udg_Stat_Mana_Flat[unitId] = 0
 
     if IsUnitType(unit, UNIT_TYPE_HERO) == true then
-        udg_Stat_Strength[unitId] = udg_Stat_Strength_Assign[unitTypeId]
+        udg_Stat_Strength[unitId] = R2I(udg_Stat_Strength_Assign[unitTypeId] * adjustmentCombatRatio)
         udg_Stat_Strength_Modifier[unitId] = 100
         udg_Stat_Strength_Flat[unitId] = 0
 
-        udg_Stat_Agility[unitId] = udg_Stat_Agility_Assign[unitTypeId]
+        udg_Stat_Agility[unitId] = R2I(udg_Stat_Agility_Assign[unitTypeId] * adjustmentCombatRatio)
         udg_Stat_Agility_Modifier[unitId] = 100
         udg_Stat_Agility_Flat[unitId] = 0
 
-        udg_Stat_Intelligence[unitId] = udg_Stat_Intelligence_Assign[unitTypeId]
+        udg_Stat_Intelligence[unitId] = R2I(udg_Stat_Intelligence_Assign[unitTypeId] * adjustmentCombatRatio)
         udg_Stat_Intelligence_Modifier[unitId] = 100
         udg_Stat_Intelligence_Flat[unitId] = 0
     end
 
-    udg_Stat_Health_Regen[unitId] = udg_Stat_Health_Regen_Assign[unitTypeId]
+    udg_Stat_Health_Regen[unitId] = udg_Stat_Health_Regen_Assign[unitTypeId] * adjustmentGeneralRatio
 
-    udg_Stat_Mana_Regen[unitId] = udg_Stat_Mana_Regen_Assign[unitTypeId]
+    udg_Stat_Mana_Regen[unitId] = udg_Stat_Mana_Regen_Assign[unitTypeId] * adjustmentGeneralRatio
 
-    udg_Stat_Armor[unitId] = udg_Stat_Armor_Assign[unitTypeId]
+    udg_Stat_Armor[unitId] = udg_Stat_Armor_Assign[unitTypeId] 
     udg_Stat_Armor_Modifier[unitId] = 100
     udg_Stat_Armor_Flat[unitId] = 0
 
-    udg_Stat_Critical_Chance[unitId] = udg_Stat_Critical_Chance_Assign[unitTypeId]
+    udg_Stat_Critical_Chance[unitId] = udg_Stat_Critical_Chance_Assign[unitTypeId] * adjustmentCombatRatio
 
     udg_Stat_Critical_Damage_Rate[unitId] = udg_Stat_Critical_Damage_Rate_As[unitTypeId]
 
@@ -233,26 +182,24 @@ function assignStatsInit(unit)
 
     udg_Stat_Attack_Interval[unitId] = BlzGetUnitAttackCooldown(unit, 0)
 
-    udg_Stat_Critical_Damage_Rate[unitId] = udg_Stat_Critical_Damage_Rate_As[unitTypeId]
+    udg_Stat_Dodge[unitId] = udg_Stat_Dodge_Assign[unitTypeId] * adjustmentCombatRatio
 
-    udg_Stat_Dodge[unitId] = udg_Stat_Dodge_Assign[unitTypeId]
-
-    udg_Stat_Parry[unitId] = udg_Stat_Parry_Assign[unitTypeId]
+    udg_Stat_Parry[unitId] = udg_Stat_Parry_Assign[unitTypeId] * adjustmentCombatRatio
     
-    udg_Stat_Block[unitId] = udg_Stat_Block_Assign[unitTypeId]
+    udg_Stat_Block[unitId] = udg_Stat_Block_Assign[unitTypeId] * adjustmentCombatRatio
     udg_Stat_Block_Enabled[unitId] = udg_Stat_Block_Enabled_Assign[unitTypeId]
 
-    udg_Stat_Miss[unitId] = udg_Stat_Miss_Assign[unitTypeId]
+    udg_Stat_Miss[unitId] = udg_Stat_Miss_Assign[unitTypeId] * adjustmentCombatRatio
 
-    udg_Stat_Attack_Damage[unitId] = udg_Stat_Attack_Damage_Assign[unitTypeId]
+    udg_Stat_Attack_Damage[unitId] = R2I(udg_Stat_Attack_Damage_Assign[unitTypeId] * adjustmentCombatRatio)
     udg_Stat_Attack_Damage_Modifier[unitId] = 100
     udg_Stat_Attack_Damage_Flat[unitId] = 0
 
-    udg_Stat_Spell_Damage[unitId] = udg_Stat_Spell_Damage_Assign[unitTypeId]
+    udg_Stat_Spell_Damage[unitId] = R2I(udg_Stat_Spell_Damage_Assign[unitTypeId] * adjustmentCombatRatio)
     udg_Stat_Spell_Damage_Modifier[unitId] = 100
     udg_Stat_Spell_Damage_Flat[unitId] = 0
 
-    udg_Stat_Life_Steal[unitId] = udg_Stat_Life_Steal_Assign[unitTypeId]
+    udg_Stat_Life_Steal[unitId] = udg_Stat_Life_Steal_Assign[unitTypeId] * adjustmentCombatRatio
 
     udg_Stat_Cooldown[unitId] = 0
 
@@ -536,6 +483,7 @@ function equipItem(player)
         end
     end
 
+    calculateUnitStats(udg_INV_Player_Hero[playerId])
     inventoryItemMultiboardRefresh(player)
 end
 
@@ -594,6 +542,7 @@ function unEquipItem(player)
     end
     unEquipItemStat(udg_INV_Player_Hero[playerId],currentItemId);
 
+    calculateUnitStats(udg_INV_Player_Hero[playerId])
     inventoryItemMultiboardRefresh(player)
 end
 
@@ -673,7 +622,7 @@ function dropItem(player)
 
 
     local heroPoint = GetUnitLoc(udg_INV_Player_Hero[playerId])
-    CreateItemLoc(FourCC(udg_ITEM_Item_Type[currentItemId]), heroPoint)
+    CreateItemLoc(udg_ITEM_Item_Type[currentItemId], heroPoint)
     local item = GetLastCreatedItem()
     if isConsumable == true then
         SetItemCharges(item, currentCharge)
@@ -683,6 +632,7 @@ function dropItem(player)
         BlzSetItemIntegerField(item, ITEM_IF_LEVEL, 10 + playerId)
     end
     RemoveLocation(heroPoint)
+    calculateUnitStats(udg_INV_Player_Hero[playerId])
     inventoryItemMultiboardRefresh(player)
 end
 
@@ -730,7 +680,7 @@ function equipItemQuickbar(player)
     SaveIntegerBJ(0, currentItemIndex, playerId, udg_INV_ItemCharges_Hashtable)
 
     DisableTrigger(gg_trg_Item_System_Acquire)
-    UnitAddItemByIdSwapped( FourCC(udg_ITEM_Item_Type[currentItemId]), udg_INV_Player_Hero[playerId] )
+    UnitAddItemByIdSwapped( udg_ITEM_Item_Type[currentItemId], udg_INV_Player_Hero[playerId] )
     SetItemCharges(GetLastCreatedItem(), charges)
     EnableTrigger(gg_trg_Item_System_Acquire)
 
@@ -791,6 +741,32 @@ function sellItem(player)
     SetPlayerState(player, PLAYER_STATE_RESOURCE_GOLD, playerGold + itemGold)
 end
 
+function sellItemCheckIfMerchantNearby(player)
+    local playerId = GetPlayerId(player) + 1
+    local loc = GetUnitLoc(udg_INV_Player_Hero[playerId])
+
+    local group = GetUnitsInRangeOfLocMatching(1000, loc, Condition(sellItemCheckIfMerchantNearbyFilter))
+    if CountUnitsInGroup(group) > 0 then
+        SetPlayerAbilityAvailable(player, FourCC('A005'), true)
+    else
+        SetPlayerAbilityAvailable(player, FourCC('A005'), false)
+    end
+
+    DestroyGroup(group)
+    RemoveLocation(loc)
+
+    group = nil
+    loc = nil
+end
+
+function sellItemCheckIfMerchantNearbyFilter()
+    if GetUnitAbilityLevel(GetFilterUnit(), FourCC('Aneu')) > 0 then
+        return true
+    else
+        return false
+    end
+end
+
 
 function useItem(unit, itemId)
     local usedSlot = nil
@@ -817,6 +793,7 @@ function useItem(unit, itemId)
         SaveIntegerBJ(currentCharge - 1, backpackSlot, playerId, udg_INV_ItemCharges_Hashtable)
     end
     
+    player = nil
 end
 
 
@@ -878,6 +855,9 @@ function calculateUnitStats(unit)
 
     --Armor
     udg_Stat_Armor_AC[unitId] = R2I((udg_Stat_Armor[unitId] * udg_Stat_Armor_Modifier[unitId] / 100) + udg_Stat_Armor_Flat[unitId])
+    if udg_Stat_Armor_AC[unitId] < 0 then
+        udg_Stat_Armor_AC[unitId] = 0
+    end
     BlzSetUnitArmor(unit, udg_Stat_Armor_AC[unitId])
 
     --Damage Taken

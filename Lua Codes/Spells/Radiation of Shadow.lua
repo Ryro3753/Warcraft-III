@@ -5,32 +5,27 @@ function radiationOfShadowCast()
     local level = GetUnitAbilityLevel(unit, spell)
 
     local damage = 0
-    local strengthPercentage = 0
-    local agilityPercentage = 0
-    local intelligencePercentage = 0
+    local attackDamagePercentage = 0
+    local spellDamagePercentage = 0
     if level == 1 then
         damage = 25
-        strengthPercentage = 0.30
-        agilityPercentage = 0.30
-        intelligencePercentage = 0.20
+        attackDamagePercentage = 0.30
+        spellDamagePercentage = 0.10
     elseif level == 2 then
         damage = 40
-        strengthPercentage = 0.31
-        agilityPercentage = 0.31
-        intelligencePercentage = 0.21
+        attackDamagePercentage = 0.32
+        spellDamagePercentage = 0.11
     elseif level == 3 then
         damage = 65
-        strengthPercentage = 0.33
-        agilityPercentage = 0.33
-        intelligencePercentage = 0.23
+        attackDamagePercentage = 0.34
+        spellDamagePercentage = 0.12
     elseif level == 4 then
         damage = 90
-        strengthPercentage = 0.35
-        agilityPercentage = 0.35
-        intelligencePercentage = 0.25
+        attackDamagePercentage = 0.36
+        spellDamagePercentage = 0.13
     end
 
-    udg_RadiationOfShadow_Damage = damage + (strengthPercentage * udg_Stat_Strength_AC[id]) + (agilityPercentage * udg_Stat_Agility_AC[id]) + (intelligencePercentage * udg_Stat_Intelligence_AC[id])
+    udg_RadiationOfShadow_Damage = damage + (attackDamagePercentage * udg_Stat_Attack_Damage_AC[id]) + (spellDamagePercentage * udg_Stat_Spell_Damage_AC[id])
 
     local loc = GetUnitLoc(unit)
     local group = GetUnitsInRangeOfLocMatching(350, loc, Condition(radiationOfShadowFilter))

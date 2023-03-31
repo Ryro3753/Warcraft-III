@@ -28,7 +28,7 @@ function decayingGleamCastFinishes()
         lifeSteal = 35
     end
 
-    local damage = R2I(baseDamage + (0.5 * udg_Stat_Intelligence_AC[id]) + (0.25 * udg_Stat_Strength_AC[id]) + (0.25 * udg_Stat_Agility_AC[id]))
+    local damage = R2I(baseDamage + (0.5 * udg_Stat_Spell_Damage_AC[id]) + (0.25 * udg_Stat_Attack_Damage_AC[id]))
 
     udg_Stat_Life_Steal_AC[id] = udg_Stat_Life_Steal_AC[id] + lifeSteal
     UnitDamageTargetBJ(unit, target, damage, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL)

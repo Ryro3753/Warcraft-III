@@ -24,7 +24,7 @@ function igniteCastFinish()
     elseif level == 4 then
         damage = 200
     end
-    damage = damage + udg_Stat_Intelligence_AC[id]
+    damage = damage + R2I(0.75 * udg_Stat_Spell_Damage_AC[id])
 
     UnitDamageTargetBJ(unit, target, damage, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL)
     createSpecialEffectOnUnit(target, "Abilities\\Spells\\Items\\AIfb\\AIfbSpecialArt.mdl")
@@ -43,10 +43,7 @@ function igniteCastFinish()
         udg_Ignite_Repeat_Count[id] = udg_Ignite_Repeat_Count[id] + 1
 
         --floatingText
-        ForceAddPlayer(udg_FloatingText_PlayerGroup, player)
-        local str = "+" .. tostring(recoverMana)
-        creatingFloatingTextTimed(str, unit, 10, 20, 20, 70)
-        str = nil
+        manaFloatingText(recoverMana, player, unit)
 
         --special effect
         createSpecialEffectOnUnit(unit, "Abilities\\Spells\\Other\\Charm\\CharmTarget.mdl")

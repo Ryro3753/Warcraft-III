@@ -31,6 +31,7 @@ function backToLifeUnitDies()
         CreateNUnitsAtLoc(1, unitType, player, udg_BackToLife_UnitLoc[id], udg_BackToLife_UnitFace[id])
         player = nil
         unitType = nil
+        IssueImmediateOrder(GetLastCreatedUnit(), "holdposition")
     end
     unit = nil
 end

@@ -63,7 +63,7 @@ end
 
 function thornsAttack(unit, target)
 
-    if UnitHasBuffBJ( target, FourCC('B003')) then
+    if UnitHasBuffBJ( target, udg_Thorns_Buff) then
         local range = getUnitIsMeleeOrRange(unit)
 
         if range == "Melee" then

@@ -91,7 +91,6 @@ function raditionOfLightLoopFor()
             DisableTrigger(gg_trg_Radiation_Of_Light_Loop)
         end
     else
-        print("anan")
         udg_RadiationOfLight_Duration[id] = udg_RadiationOfLight_Duration[id] - 1
     end
 

@@ -57,7 +57,7 @@ function tauntLearn()
     local id = GetUnitUserData(unit)
 
     if level == 4 then
-        udg_ThreatMeter_UnitThreatModifier[id] = udg_ThreatMeter_UnitThreatModifier[id] + 0.10
+        udg_ThreatMeter_UnitThreatModifier[id] = udg_ThreatMeter_UnitThreatModifier[id] + 10
     end
 
     unit = nil
@@ -73,7 +73,7 @@ function tauntUnlearn()
     local id = GetUnitUserData(unit)
     
     if level == 4 then
-        udg_ThreatMeter_UnitThreatModifier[id] = udg_ThreatMeter_UnitThreatModifier[id] - 0.10
+        udg_ThreatMeter_UnitThreatModifier[id] = udg_ThreatMeter_UnitThreatModifier[id] - 10
     end
 
     unit = nil

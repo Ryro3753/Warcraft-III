@@ -4,6 +4,67 @@ function fillPlayerGroup()
             ForceAddPlayer(udg_Player_PlayerGroup, Player(i-1))
         end
     end
+
+    ForceAddPlayer(udg_Enemy_PlayerGroup, Player(8))
+
+    adjustmentCalculation()
+    enemyGroupHoldPosition()
+    healOrbEnable()
+end
+
+function adjustmentCalculation()
+    local playerCount = CountPlayersInForceBJ(udg_Player_PlayerGroup)
+    if playerCount == 1 then
+        udg_AdjustmentGeneral_Ratio = 0.4
+        udg_AdjustmentCombat_Ratio = 0.5
+    elseif playerCount == 2  then
+        udg_AdjustmentGeneral_Ratio = 0.75
+        udg_AdjustmentCombat_Ratio = 0.8
+    elseif playerCount == 3 then
+        udg_AdjustmentGeneral_Ratio = 1
+        udg_AdjustmentCombat_Ratio = 1
+    elseif playerCount == 4 then
+        udg_AdjustmentGeneral_Ratio = 1.4
+        udg_AdjustmentCombat_Ratio = 1.3
+    elseif playerCount == 5 then
+        udg_AdjustmentGeneral_Ratio = 1.9
+        udg_AdjustmentCombat_Ratio = 1.6
+    end
+end
+
+function adjustmentRatioGet(unit)
+    local player = GetOwningPlayer(unit)
+    local adjustmentGeneralRatio = 0.0
+    local adjustmentCombatRatio = 0.0
+    if IsPlayerInForce(player, udg_Enemy_PlayerGroup) then
+        adjustmentGeneralRatio = udg_AdjustmentGeneral_Ratio
+        adjustmentCombatRatio = udg_AdjustmentCombat_Ratio
+    else
+        adjustmentGeneralRatio = 1
+        adjustmentCombatRatio = 1
+    end
+    player = nil
+
+    return adjustmentGeneralRatio, adjustmentCombatRatio
+end
+
+function enemyGroupHoldPosition()
+    local group = GetUnitsInRectMatching(GetPlayableMapRect(), Condition(enemyGroupHoldPositionFilter))
+    ForGroup(group, enemyGroupHoldPositionFor)
+    DestroyGroup(group)
+    group = nil
+end
+
+function enemyGroupHoldPositionFilter()
+    if IsPlayerInForce(GetOwningPlayer(GetFilterUnit()), udg_Enemy_PlayerGroup)  then
+       return true
+    else
+        return false
+    end
+end
+
+function enemyGroupHoldPositionFor()
+    IssueImmediateOrder(GetEnumUnit(), "holdposition")
 end
 
 function creatingFloatingTextTimed(text, unit, size, red, green, blue)
@@ -197,9 +258,21 @@ function gainManaToUnit(unit, mana)
 
     if unitCurrentMana + mana > unitMaxMana then
         SetUnitState(unit, UNIT_STATE_MANA, unitMaxMana)
+        return unitMaxMana - unitCurrentMana
     else
         SetUnitState(unit, UNIT_STATE_MANA, unitCurrentMana + mana)
+        return mana
     end
+end
+
+function manaFloatingText(mana, player, unit)
+    if mana < 1 then
+        return
+    end
+    ForceAddPlayer(udg_FloatingText_PlayerGroup, player)
+    local str = "+" .. tostring(R2I(mana))
+    creatingFloatingTextTimed(str, unit, 10, 20, 20, 70)
+    str = nil
 end
 
 function getAbilityMana(unit, spell, level)
@@ -254,3 +327,23 @@ function arrayHasValue(tab, val)
     return false
 end
 
+function playSoundAtUnit(unit, sound)
+    local loc = GetUnitLoc(unit)
+    PlaySoundAtPointBJ(sound, 100, loc, 0)
+    RemoveLocation(loc)
+    loc = nil
+end
+
+function groupKillEveryEnumUnit()
+    KillUnit(GetEnumUnit())
+end
+
+function groupRemoveEveryEnumUnit()
+    RemoveUnit(GetEnumUnit())
+end
+
+function stopUnitCasting(unit)
+    PauseUnit(unit, true)
+    IssueImmediateOrder(unit, "stop")
+    PauseUnit(unit, false)
+end

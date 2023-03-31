@@ -24,7 +24,7 @@ end
 
 function cursedStrikeAttack(unit, target)
 
-    if UnitHasBuffBJ(unit, FourCC('B001')) == false then
+    if UnitHasBuffBJ(unit, udg_CursedStrike_Buff) == false then
         return
     end
 
@@ -50,7 +50,7 @@ function cursedStrikeAttack(unit, target)
     elseif level == 4 then
         baseDamage = 150
     end
-    local statDamage = R2I((0.5 * udg_Stat_Strength_AC[id])) + (udg_Stat_Agility_AC[id])
+    local statDamage = R2I(2 * udg_Stat_Attack_Damage_AC[id])
     local damage = baseDamage + statDamage
 
     UnitDamageTargetBJ(unit, target, damage, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_NORMAL)

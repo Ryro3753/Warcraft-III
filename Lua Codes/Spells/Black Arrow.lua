@@ -13,7 +13,7 @@ function blackArrowCastFinishes()
 
     udg_Black_Arrow_Ability[id] = spell
 
-    missileToUnit(unit,udg_Black_Arrow_Target[id],"Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl", 100, 40, gg_trg_Black_Arrow_Missile_Hit)
+    missileToUnit(unit,udg_Black_Arrow_Target[id],"Abilities\\Spells\\Other\\BlackArrow\\BlackArrowMissile.mdl", 1, 100, 40, gg_trg_Black_Arrow_Missile_Hit)
 
     setCooldownToAbility(unit, id, spell, level)
 
@@ -44,6 +44,8 @@ function blackArrowMissileHit()
         damage = 145
         silence = 3
     end
+
+    damage = damage + (0.7 * udg_Stat_Attack_Damage_AC[casterId])
 
     silenceUnit(target, silence)
 

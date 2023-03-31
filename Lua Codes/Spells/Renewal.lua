@@ -65,7 +65,7 @@ function renewalCastFinishes()
     elseif level == 4 then
         heal = 100
     end
-    heal = heal + (0.2 * udg_Stat_Intelligence_AC[id]) + (0.1 * udg_Stat_Agility_AC[id])
+    heal = heal + (0.1 * udg_Stat_Spell_Damage_AC[id]) + (0.1 * udg_Stat_Agility_AC[id])
     udg_Renewal_Heal[id] = heal
 
     if IsUnitInGroup(unit, udg_Renewal_Group) == false then

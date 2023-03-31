@@ -6,6 +6,8 @@ function settingSystemInit()
         udg_Settings_ShowHealGive[playerId] = 1
         udg_Settings_ShowDamageTaken[playerId] = 1
         udg_Settings_ShowDamageDealt[playerId] = 1
+        udg_Settings_ShowNotes[playerId] = 1
+        udg_Settings_ShowAllAchivements[playerId] = 1
     end
 end
 
@@ -83,8 +85,26 @@ function settingSystemRefresh(idStart, playerId)
     DialogAddButtonBJ(udg_Settings_Dialog[playerId], "Show Damage Dealt (|cffc03232" .. damageDealt .. "|r)")
     udg_Settings_Dialog_Button[idStart + 6] = GetLastCreatedButtonBJ()
 
-    DialogAddButtonBJ(udg_Settings_Dialog[playerId], "Close")
+    local notes = ""
+    if udg_Settings_ShowNotes[playerId] == 0 then
+        notes = "Hide"
+    elseif udg_Settings_ShowNotes[playerId] == 1 then
+        notes = "Show"
+    end
+    DialogAddButtonBJ(udg_Settings_Dialog[playerId], "Show Game Info (|cffc03232" .. notes .. "|r)")
     udg_Settings_Dialog_Button[idStart + 7] = GetLastCreatedButtonBJ()
+
+    local achivements = ""
+    if udg_Settings_ShowAllAchivements[playerId] == 0 then
+        achivements = "Current Map Achivements"
+    elseif udg_Settings_ShowAllAchivements[playerId] == 1 then
+        achivements = "All Achivements"
+    end
+    DialogAddButtonBJ(udg_Settings_Dialog[playerId], "Show Achivements (|cffc03232" .. achivements .. "|r)")
+    udg_Settings_Dialog_Button[idStart + 8] = GetLastCreatedButtonBJ()
+
+    DialogAddButtonBJ(udg_Settings_Dialog[playerId], "Close")
+    udg_Settings_Dialog_Button[idStart + 9] = GetLastCreatedButtonBJ()
 
     goldText = nil
     expText = nil
@@ -92,6 +112,8 @@ function settingSystemRefresh(idStart, playerId)
     healGive = nil
     damageTaken = nil
     damageDealt = nil
+    notes = nil
+
 end
 
 
@@ -99,13 +121,13 @@ function settingSystemDialogClicked()
     local player = GetTriggerPlayer()
     local playerId = GetPlayerId(player) + 1
     local clickedButton = GetClickedButtonBJ()
-    local idStart = (playerId - 1) * 7
+    local idStart = (playerId - 1) * 9
 
     --Finding Button Index
     local index = -1
-    for i=idStart + 1, idStart + 7 do
+    for i=idStart + 1, idStart + 9 do
         if udg_Settings_Dialog_Button[i] == clickedButton then
-            index = ModuloInteger(i, 7)
+            index = ModuloInteger(i, 9)
         end
     end
 
@@ -155,6 +177,21 @@ function settingSystemDialogClicked()
         else
             udg_Settings_ShowDamageDealt[playerId] = 0
         end
+    elseif index == 7 then
+        if udg_Settings_ShowNotes[playerId] == 0 then
+            udg_Settings_ShowNotes[playerId] = 1
+        else
+            udg_Settings_ShowNotes[playerId] = 0
+        end
+            notesRefresh(player)
+            achivementsRefresh(player)
+    elseif index == 8 then
+        if udg_Settings_ShowAllAchivements[playerId] == 0 then
+            udg_Settings_ShowAllAchivements[playerId] = 1
+        else
+            udg_Settings_ShowAllAchivements[playerId] = 0
+        end
+        achivementsRefresh(player)
     end
 
     settingSystemRefresh(idStart, playerId)

@@ -22,7 +22,7 @@ function felBlastFinish()
     elseif level == 4 then
         damage = 450
     end
-    damage = damage + (2 * udg_Stat_Intelligence_AC[id])
+    damage = damage + (1.2 * udg_Stat_Spell_Damage_AC[id])
 
     udg_FelBlast_Damage[id] = damage
 
